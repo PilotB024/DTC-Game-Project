@@ -4,85 +4,13 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Game</title>
-
-	<style>
-		canvas {
-			border: black solid 5px;
-			border-radius: 5px;
-		}
-	</style>
+	<link rel="stylesheet" type="text/css" href="style.css">
 </head>
 <body>
 	<div id="wrapper">
 		<canvas width="900" height="500" id="display"></canvas>
 	</div>
 
-	<script>
-		const canvas = document.getElementById("display");
-		const ctx = canvas.getContext("2d");
-
-		// Define Player class
-		class Player {
-			constructor(x, y, width, height, speed, gravity) {
-				this.x = x;
-				this.y = y;
-				this.width = width;
-				this.height = height;
-				this.speed = speed;
-				this.gravity = gravity;
-				this.moving = { up: false, down: false, left: false, right: false };
-			}
-
-			update() {
-				if (this.moving.up) this.y -= this.speed;
-				if (this.moving.down) this.y += this.speed;
-				if (this.moving.left && !this.moving.right) this.x -= this.speed;
-				if (this.moving.right && !this.moving.left) this.x += this.speed;
-				this.y -= this.gravity;
-
-
-				// Prevent moving out of bounds
-				this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
-				this.y = Math.max(0, Math.min(canvas.height - this.height, this.y));
-			}
-
-			draw() {
-				ctx.fillStyle = "lime";
-				ctx.fillRect(this.x, this.y, this.width, this.height);
-			}
-		}
-
-		// Create player
-		const player = new Player(100, 100, 50, 50, 10, -2);
-
-		// Handle key input
-		window.addEventListener("keydown", (e) => {
-			switch (e.key.toLowerCase()) {
-				case "w": player.moving.up = true; break;
-				case "s": player.moving.down = true; break;
-				case "a": player.moving.left = true; break;
-				case "d": player.moving.right = true; break;
-			}
-		});
-
-		window.addEventListener("keyup", (e) => {
-			switch (e.key.toLowerCase()) {
-				case "w": player.moving.up = false; break;
-				case "s": player.moving.down = false; break;
-				case "a": player.moving.left = false; break;
-				case "d": player.moving.right = false; break;
-			}
-		});
-
-		// Game loop
-		function gameLoop() {
-			ctx.clearRect(0, 0, canvas.width, canvas.height);
-			player.update();
-			player.draw();
-			requestAnimationFrame(gameLoop);
-		}
-
-		gameLoop();
-	</script>
+	<script src="script.js"></script>
 </body>
 </html>
