@@ -1,29 +1,46 @@
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
 
-// Define Player class
+ctx.fillRect(0, 0, 200, 100);
+
 class Player {
-	constructor(x, y, width, height, speed, gravity) {
+	constructor(x, y, width, height) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
-		this.speed = speed;
-		this.gravity = gravity;
-		this.moving = { up: false, down: false, left: false, right: false };
+
+		this.speed = 7;
+		this.velocityY = 0;
+		this.gravity = 1;      // pull down strength
+		this.jumpForce = 20;   // how powerful the jump is
+		this.grounded = false;
+		this.jumpCount = 2;
+
+		this.moving = { left: false, right: false };
 	}
 
 	update() {
-		if (this.moving.up) this.y -= this.speed;
-		if (this.moving.down) this.y += this.speed;
+		// --- Horizontal movement ---
 		if (this.moving.left && !this.moving.right) this.x -= this.speed;
 		if (this.moving.right && !this.moving.left) this.x += this.speed;
-		this.y -= this.gravity;
 
+		// --- Apply gravity ---
+		this.velocityY += this.gravity;
+		this.y += this.velocityY;
 
-		// Prevent moving out of bounds
+		// --- Ground collision ---
+		if (this.y + this.height >= canvas.height) {
+			this.y = canvas.height - this.height; // snap to ground
+			this.velocityY = 0;
+			this.grounded = true;
+			this.jumpCount = 2;
+		} else {
+			this.grounded = false;
+		}
+
+		// --- Keep player within horizontal bounds ---
 		this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
-		this.y = Math.max(0, Math.min(canvas.height - this.height, this.y));
 	}
 
 	draw() {
@@ -32,34 +49,42 @@ class Player {
 	}
 }
 
-// Create player
-const player = new Player(100, 100, 50, 50, 10, -2);
+const player = new Player(100, 100, 50, 50);
 
-// Handle key input
+// Input handling
 window.addEventListener("keydown", (e) => {
 	switch (e.key.toLowerCase()) {
-		case "w": player.moving.up = true; break;
-		case "s": player.moving.down = true; break;
 		case "a": player.moving.left = true; break;
 		case "d": player.moving.right = true; break;
+		case "w":
+			if (player.grounded || player.jumpCount > 0) {
+				player.velocityY = -player.jumpForce; // jump impulse
+				player.grounded = false;
+				player.jumpCount--;
+			}
+			break;
 	}
 });
 
 window.addEventListener("keyup", (e) => {
 	switch (e.key.toLowerCase()) {
-		case "w": player.moving.up = false; break;
-		case "s": player.moving.down = false; break;
 		case "a": player.moving.left = false; break;
 		case "d": player.moving.right = false; break;
 	}
 });
 
-// Game loop
 function gameLoop() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
 	player.update();
 	player.draw();
 	requestAnimationFrame(gameLoop);
+	const linearGradient = ctx.createLinearGradient(0, 0, 200, 0);
+
+	linearGradient.addColorStop(0, 'red');     // Start color
+	linearGradient.addColorStop(0.5, 'yellow'); // Middle color
+	linearGradient.addColorStop(1, 'blue');    // End color
+
+	ctx.fillStyle = linearGradient;
 }
 
 gameLoop();
