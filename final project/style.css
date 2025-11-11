@@ -1,0 +1,14 @@
+canvas {
+	border: black solid 5px;
+	border-radius: 5px;
+	margin: auto;
+	display: block;
+	width: 70%;
+}
+
+body {
+  background-color: lightcyan;
+  text-align: center;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 20px;
+}
