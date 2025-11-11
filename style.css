@@ -4,4 +4,12 @@ canvas {
 	margin: auto;
 	display: block;
 	width: 70%;
+	background-color: white;
+}
+
+body {
+  background-color: lightcyan;
+  text-align: center;
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 20px;
 }

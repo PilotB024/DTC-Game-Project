@@ -1,8 +1,6 @@
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
 
-ctx.fillRect(0, 0, 200, 100);
-
 class Player {
 	constructor(x, y, width, height) {
 		this.x = x;
