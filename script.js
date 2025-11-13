@@ -18,6 +18,7 @@ class Player {
 		this.jumpCount = 2;
 
 		this.moving = { left: false, right: false };
+		this.direction = true;
 
 		this.health = 100;
 		this.maxHealth = 100;
@@ -65,8 +66,14 @@ const player = new Player(100, 100, 50, 50);
 // Input handling
 window.addEventListener("keydown", (e) => {
 	switch (e.key.toLowerCase()) {
-		case "a": player.moving.left = true; break;
-		case "d": player.moving.right = true; break;
+		case "a": 
+			player.moving.left = true; 
+			player.direction = false;
+			break;
+		case "d": 
+			player.moving.right = true; 
+			player.direction = true;
+			break;
 		case "w":
 			if (player.grounded && player.jumpCount > 1) {
 				player.velocityY = -player.jumpForce; // jump impulse
@@ -77,6 +84,14 @@ window.addEventListener("keydown", (e) => {
 				player.jumpCount--;
 				player.force -= 20;
 			}
+			break;
+		case " ": 
+			const now = Date.now(); 
+			if (now - lastSwing < attackSpeed) return;
+
+			lastSwing = now;
+			saber = new Lightsaber(player, player.direction);
+			console.log(player.direction);
 			break;
 	}
 });
@@ -159,6 +174,57 @@ function drawCrosshair(ctx, x, y) {
 	ctx.stroke();
 }
 
+let lastSwing = 0;
+let attackSpeed = 400;
+let saber = null;
+class Lightsaber {
+	constructor(player, direction) {
+		this.player = player;
+		this.length = 60;
+		this.width = 10;
+		this.swingSpeed = 0.25;
+		this.direction = direction;
+		this.active = true;
+
+		if (direction) {
+			this.angle = -Math.PI / 4;
+			this.endAngle = Math.PI / 4;
+		} else {
+			this.angle = Math.PI + Math.PI / 4;
+			this.endAngle = Math.PI - Math.PI / 4;
+		}
+	}
+
+	update() {
+		if (this.direction) {
+			this.angle += this.swingSpeed;
+			if (this.angle >= this.endAngle) this.active = false;
+		} else {
+			this.angle -= this.swingSpeed;
+			if (this.angle <= this.endAngle) this.active = false;
+		}
+	}
+
+	draw(ctx) {
+		if (!this.active) return;
+
+		ctx.save();
+
+		// Move pivot to player center
+		const pivotX = this.player.x + this.player.width / 2;
+		const pivotY = this.player.y + this.player.height / 2;
+
+		ctx.translate(pivotX, pivotY);
+		ctx.rotate(this.angle);
+
+		// Draw saber from pivot outward
+		ctx.fillStyle = "red";
+		ctx.fillRect(0, -this.width / 2, this.length, this.width);
+
+		ctx.restore();
+	}
+}
+
 const enemies = [];
 let enemyTimer = 0;
 let enemyInterval = 3000;
@@ -206,16 +272,32 @@ function boxCollision(player, enemy) {
 }
 
 let frame = 1;
+let lastTime = performance.now();
+let fps = 0;
+let framesThisSecond = 0;
+let lastFpsUpdate = performance.now();
+
 function gameLoop(timestamp) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+	// === FPS Calculation ===
+	const delta = timestamp - lastTime;
+	lastTime = timestamp;
+	framesThisSecond++;
+
+	if (timestamp - lastFpsUpdate >= 1000) {
+		fps = fps * 0.8 + framesThisSecond * 0.2; // smooth average
+		framesThisSecond = 0;
+		lastFpsUpdate = timestamp;
+	}
+
 	player.update();
 	player.draw();
 	drawCrosshair(ctx, mouse.x, mouse.y);
 
-	enemyTimer += 16.67; // approximate 60fps
+	enemyTimer += delta;
 	if (enemyTimer > enemyInterval) {
 		let y = Math.random() * (canvas.height / 3);
-
 		enemies.push(new Enemy(canvas.width, y, 50, 50)); // spawn from right edge
 		enemyTimer = 0;
 	}
@@ -230,19 +312,31 @@ function gameLoop(timestamp) {
 	for (let i = enemies.length - 1; i >= 0; i--) {
 		if (enemies[i].markedForDeletion) enemies.splice(i, 1);
 	}
-	
-	requestAnimationFrame(gameLoop);
 
+	// Lightsaber swing
+	if (saber) {
+		saber.update();
+		saber.draw(ctx);
+		if (!saber.active) saber = null;
+	}
+
+	// Bullets
 	for (let i = bullets.length - 1; i >= 0; i--) {
 		const bullet = bullets[i];
 		bullet.update();
 		bullet.draw(ctx);
 
-		// remove bullets that exceed range
 		if (bullet.distanceTraveled >= bullet.range) {
 			bullets.splice(i, 1);
 		}
 	}
+
+	// === FPS Display ===
+	ctx.font = "16px monospace";
+	ctx.fillStyle = "white";
+	ctx.fillText(`FPS: ${fps.toFixed(1)}`, 10, 20);
+
+	requestAnimationFrame(gameLoop);
 }
 
 gameLoop();
