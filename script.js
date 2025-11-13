@@ -1,8 +1,6 @@
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
 
-ctx.fillRect(0, 0, 200, 100);
-
 class Player {
 	constructor(x, y, width, height) {
 		this.x = x;
@@ -12,8 +10,8 @@ class Player {
 
 		this.speed = 7;
 		this.velocityY = 0;
-		this.gravity = 1;      // pull down strength
-		this.jumpForce = 20;   // how powerful the jump is
+		this.gravity = 2000;      // pull down strength
+		this.jumpForce = 800;   // how powerful the jump is
 		this.grounded = false;
 		this.jumpCount = 2;
 
@@ -26,19 +24,19 @@ class Player {
 		this.maxForce = 100;
 	}
 
-	update() {
-		frame++;
-		// --- Horizontal movement ---
+	update(delta) {
+		console.log(delta);
+		// Horizontal movement
 		if (this.moving.left && !this.moving.right) this.x -= this.speed;
 		if (this.moving.right && !this.moving.left) this.x += this.speed;
 
-		// --- Apply gravity ---
-		this.velocityY += this.gravity;
-		this.y += this.velocityY;
+		// Gravity
+		this.velocityY += this.gravity * delta;
+		this.y += this.velocityY * delta;
 
-		// --- Ground collision ---
+		// Ground collision
 		if (this.y + this.height >= canvas.height) {
-			this.y = canvas.height - this.height; // snap to ground
+			this.y = canvas.height - this.height;
 			this.velocityY = 0;
 			this.grounded = true;
 			this.jumpCount = 2;
@@ -46,10 +44,11 @@ class Player {
 			this.grounded = false;
 		}
 
-		// --- Keep player within horizontal bounds ---
+		// Keep player inside screen
 		this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
-		if (this.force < this.maxForce && frame % 15 == 0) this.force += 1;
+		// Recharge force slowly
+		if (this.force < this.maxForce && frame % 15 === 0) this.force += 1;
 	}
 
 	draw() {
@@ -62,6 +61,10 @@ class Player {
 }
 
 const player = new Player(100, 100, 50, 50);
+
+let lastSwing = 0;
+let attackSpeed = 400;
+let saber = null;
 
 // Input handling
 window.addEventListener("keydown", (e) => {
@@ -104,11 +107,14 @@ window.addEventListener("keyup", (e) => {
 });
 
 const bullets = [];
+let lastShotTime = 0;
+const fireRate = 200;
+
 class Bullet {
 	constructor(x, y, targetX, targetY) {
 		this.x = x;
 		this.y = y;
-		this.speed = 20;
+		this.speed = 1200;
 		this.range = 500;
 		this.distanceTraveled = 0;
 
@@ -119,10 +125,11 @@ class Bullet {
 		this.dy = diffY / length;
 	}
 
-	update() {
-		this.x += this.dx * this.speed;
-		this.y += this.dy * this.speed;
-		this.distanceTraveled += this.speed;
+	update(delta) {
+		const distance = this.speed * delta;
+		this.x += this.dx * distance;
+		this.y += this.dy * distance;
+		this.distanceTraveled += distance;
 	}
 
 	draw(ctx) {
@@ -136,10 +143,6 @@ class Bullet {
 		ctx.restore();
 	}
 }
-
-
-let lastShotTime = 0;
-const fireRate = 200; // milliseconds between shots (5 per second)
 
 canvas.addEventListener("mousedown", (event) => {
 	const now = Date.now();
@@ -155,12 +158,11 @@ canvas.addEventListener("mousedown", (event) => {
 	));
 });
 
+const mouse = { x: 0, y: 0 };
 canvas.addEventListener("mousemove", (event) => {
 	mouse.x = event.offsetX;
 	mouse.y = event.offsetY;
 });
-
-const mouse = { x: 0, y: 0 };
 
 function drawCrosshair(ctx, x, y) {
 	ctx.strokeStyle = "orange";
@@ -174,15 +176,12 @@ function drawCrosshair(ctx, x, y) {
 	ctx.stroke();
 }
 
-let lastSwing = 0;
-let attackSpeed = 400;
-let saber = null;
 class Lightsaber {
 	constructor(player, direction) {
 		this.player = player;
 		this.length = 60;
 		this.width = 10;
-		this.swingSpeed = 0.25;
+		this.swingSpeed = 5;
 		this.direction = direction;
 		this.active = true;
 
@@ -195,12 +194,13 @@ class Lightsaber {
 		}
 	}
 
-	update() {
+	update(delta) {
+		const step = this.swingSpeed * delta;
 		if (this.direction) {
-			this.angle += this.swingSpeed;
+			this.angle += step;
 			if (this.angle >= this.endAngle) this.active = false;
 		} else {
-			this.angle -= this.swingSpeed;
+			this.angle -= step;
 			if (this.angle <= this.endAngle) this.active = false;
 		}
 	}
@@ -235,16 +235,16 @@ class Enemy {
 		this.width = width;
 		this.height = height;
 
-		this.speed = 3; 
+		this.speed = 180; 
 		this.angle = 0; // controls the the bobbing
 		this.amplitude = 2; // how high it bobs
 		this.frequency = 0.09; // how fast it bobs
 		this.markedForDeletion = false;
 	}
 
-	update() {
+	update(delta) {
 		// Move left
-		this.x -= this.speed;
+		this.x -= this.speed * delta;
 
 		// Bob up and down smoothly
 		this.y += Math.sin(this.angle) * this.amplitude;
@@ -272,13 +272,31 @@ function boxCollision(player, enemy) {
 }
 
 let frame = 1;
+let lastTime = performance.now();
+let fps = 0;
+let framesThisSecond = 0;
+let lastFpsUpdate = performance.now();
+
 function gameLoop(timestamp) {
+	const delta = (timestamp - lastTime) / 1000;
+	lastTime = timestamp;
+
+	frame++;
+
+	framesThisSecond++;
+	if (timestamp - lastFpsUpdate >= 1000) {
+		fps = framesThisSecond;
+		framesThisSecond = 0;
+		lastFpsUpdate = timestamp;
+	}
+
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	player.update();
+
+	player.update(delta);
 	player.draw();
 	drawCrosshair(ctx, mouse.x, mouse.y);
 
-	enemyTimer += 16.67; // approximate 60fps
+	enemyTimer += delta * 1000; // approximate 60fps
 	if (enemyTimer > enemyInterval) {
 		let y = Math.random() * (canvas.height / 3);
 
@@ -288,7 +306,7 @@ function gameLoop(timestamp) {
 
 	// Update & draw enemies
 	enemies.forEach((enemy) => {
-		enemy.update();
+		enemy.update(delta);
 		enemy.draw();
 	});
 
@@ -298,16 +316,14 @@ function gameLoop(timestamp) {
 	}
 
 	if (saber) {
-		saber.update();
+		saber.update(delta);
 		saber.draw(ctx);
 		if (!saber.active) saber = null; // remove after swing ends
 	}
-	
-	requestAnimationFrame(gameLoop);
 
 	for (let i = bullets.length - 1; i >= 0; i--) {
 		const bullet = bullets[i];
-		bullet.update();
+		bullet.update(delta);
 		bullet.draw(ctx);
 
 		// remove bullets that exceed range
@@ -315,8 +331,12 @@ function gameLoop(timestamp) {
 			bullets.splice(i, 1);
 		}
 	}
+
+	ctx.font = "16px monospace";
+	ctx.fillStyle = "black";
+	ctx.fillText(`FPS: ${fps}`, 10, canvas.height - 10);
+
+	requestAnimationFrame(gameLoop);
 }
 
-
-
-gameLoop();
+requestAnimationFrame(gameLoop)
