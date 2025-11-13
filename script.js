@@ -272,32 +272,16 @@ function boxCollision(player, enemy) {
 }
 
 let frame = 1;
-let lastTime = performance.now();
-let fps = 0;
-let framesThisSecond = 0;
-let lastFpsUpdate = performance.now();
-
 function gameLoop(timestamp) {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-	// === FPS Calculation ===
-	const delta = timestamp - lastTime;
-	lastTime = timestamp;
-	framesThisSecond++;
-
-	if (timestamp - lastFpsUpdate >= 1000) {
-		fps = fps * 0.8 + framesThisSecond * 0.2; // smooth average
-		framesThisSecond = 0;
-		lastFpsUpdate = timestamp;
-	}
-
 	player.update();
 	player.draw();
 	drawCrosshair(ctx, mouse.x, mouse.y);
 
-	enemyTimer += delta;
+	enemyTimer += 16.67; // approximate 60fps
 	if (enemyTimer > enemyInterval) {
 		let y = Math.random() * (canvas.height / 3);
+
 		enemies.push(new Enemy(canvas.width, y, 50, 50)); // spawn from right edge
 		enemyTimer = 0;
 	}
@@ -313,30 +297,26 @@ function gameLoop(timestamp) {
 		if (enemies[i].markedForDeletion) enemies.splice(i, 1);
 	}
 
-	// Lightsaber swing
 	if (saber) {
 		saber.update();
 		saber.draw(ctx);
-		if (!saber.active) saber = null;
+		if (!saber.active) saber = null; // remove after swing ends
 	}
+	
+	requestAnimationFrame(gameLoop);
 
-	// Bullets
 	for (let i = bullets.length - 1; i >= 0; i--) {
 		const bullet = bullets[i];
 		bullet.update();
 		bullet.draw(ctx);
 
+		// remove bullets that exceed range
 		if (bullet.distanceTraveled >= bullet.range) {
 			bullets.splice(i, 1);
 		}
 	}
-
-	// === FPS Display ===
-	ctx.font = "16px monospace";
-	ctx.fillStyle = "white";
-	ctx.fillText(`FPS: ${fps.toFixed(1)}`, 10, 20);
-
-	requestAnimationFrame(gameLoop);
 }
+
+
 
 gameLoop();
