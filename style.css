@@ -21,6 +21,7 @@ body {
 .header {
   text-align: center;
   background-color: dimgray;
+  border: solid 4px #FF1440;  /* red glow border effect */
 }
 
 /* Header link colors */
@@ -75,6 +76,20 @@ nav li a:hover {
   text-shadow: 0 0 8px #FFD700;
 }
 
+h1 {
+  color: #3FB0FF; 
+  /*this is a Title Blue*/
+  font-size: 2em;
+}
 
+#leaderboard {
+  border: solid 4px #FFD24A; /* yellow gold color */
+  background-color: #FFFDD0; /* Cream Yellow Color */
+}
+
+#manual {
+  border: solid 4px #7CFC00; /* grass green color (to represent the green lightsaber) */
+  background-color: #FFFDD0; /* Cream Yellow Color */
+}
 
 
