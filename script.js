@@ -1,5 +1,5 @@
 // ========================
-// 30 FPS fixed-timestep game
+// 60 FPS fixed-timestep game
 // ========================
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
@@ -40,7 +40,7 @@ class Player {
 	}
 
 	update(delta) {
-		// delta is seconds (e.g. 1/30)
+		// delta is seconds (e.g. 1/60)
 		// horizontal
 		if (this.moving.left && !this.moving.right) this.x -= this.speed * delta;
 		if (this.moving.right && !this.moving.left) this.x += this.speed * delta;
@@ -63,7 +63,7 @@ class Player {
 		this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
 		// force regen every 15 frames of the fixed update
-		if (frame % 15 === 0 && this.force < this.maxForce) {
+		if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
 			this.force = Math.min(this.maxForce, this.force + 1);
 		}
 	}
@@ -89,18 +89,27 @@ const player = new Player(100, 100, 50, 50);
 let lastSwing = 0;
 let attackSpeed = 400;
 let saber = null;
+let shield = null;
+
+window.addEventListener("keydown", (e) => {
+    const blocked = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "];
+    if (blocked.includes(e.key)) e.preventDefault();
+});
 
 window.addEventListener("keydown", (e) => {
 	switch (e.key.toLowerCase()) {
 		case "a":
+		case "arrowleft":
 			player.moving.left = true;
 			player.direction = false;
 			break;
 		case "d":
+		case "arrowright":
 			player.moving.right = true;
 			player.direction = true;
 			break;
 		case "w":
+		case "arrowup":
 			// primary jump (ground) or double jump using force
 			if (player.grounded && player.jumpCount > 1) {
 				player.velocityY = -player.jumpForce;
@@ -113,19 +122,32 @@ window.addEventListener("keydown", (e) => {
 			}
 			break;
 		case " ":
-			{
-				const now = Date.now();
-				if (now - lastSwing < attackSpeed) return;
-				lastSwing = now;
-				saber = new Lightsaber(player, player.direction);
+			const now = Date.now();
+			if (now - lastSwing < attackSpeed) return;
+			lastSwing = now;
+			saber = new Lightsaber(player, player.direction);
+			break;
+		case "q":
+			if (!shield && player.force >= 50) {
+				shield = new ForceShield(player);
 			}
 			break;
 	}
 });
 window.addEventListener("keyup", (e) => {
 	switch (e.key.toLowerCase()) {
-		case "a": player.moving.left = false; break;
-		case "d": player.moving.right = false; break;
+		case "a": 
+		case "arrowleft":
+			player.moving.left = false; 
+			break;
+		case "d": 
+		case "arrowright":
+			player.moving.right = false; 
+			break;
+		case "q":
+			if (shield) shield.active = false;
+			shield = null;
+			break;
 	}
 });
 
@@ -170,7 +192,7 @@ class Bullet {
 
 canvas.addEventListener("mousedown", (event) => {
 	const now = Date.now();
-	if (now - lastShotTime < fireRate) return;
+	if (now - lastShotTime < fireRate || saber) return;
 	lastShotTime = now;
 
 	// use offsetX/Y which are canvas coordinates
@@ -246,6 +268,58 @@ class Lightsaber {
 	}
 }
 
+
+class ForceShield {
+	constructor(player) {
+		this.player = player;
+		this.radius = 50;
+		
+		this.cost = 1;
+		this.costInterval = 1000 / 5;
+		this.timer = 0;
+
+		this.active = true;
+	}
+
+	update(delta) {
+		if (!this.active) return;
+
+		this.timer += delta * 1000;
+
+		while (this.timer >= this.costInterval) {
+			this.timer -= this.costInterval;
+
+			this.player.force -= this.cost;
+
+			if (this.player.force <= 0) {
+				this.player.force = 0;
+				this.active = false;
+				break;
+			}
+		}
+	}
+
+	draw(ctx) {
+		if (!this.active) return;
+
+		ctx.save();
+		ctx.globalAlpha = 0.25;
+		ctx.fillStyle = "cyan";
+
+		ctx.beginPath();
+		ctx.arc(
+			this.player.x + player.width / 2, 
+			this.player.y + player.height / 2, 
+			this.radius, 
+			0, 
+			2 * Math.PI
+		);
+		ctx.fill();
+
+		ctx.restore();
+	}
+}
+
 // ------------------------
 // ENEMIES
 // ------------------------
@@ -282,7 +356,7 @@ class Enemy {
 // ------------------------
 // Update loop (fixed timestep)
 // ------------------------
-const timestep = 1000 / 60; // ms per update (30 FPS)
+const timestep = 1000 / 60; // ms per update (60 FPS)
 let lastTime = performance.now();
 let accumulator = 0;
 
@@ -312,6 +386,12 @@ function updateGame(delta) {
 		if (!saber.active) saber = null;
 	}
 
+	if (shield) {
+    	shield.update(delta);
+    	if (!shield.active) shield = null;
+	}
+
+
 	// bullets update & removal
 	for (let i = bullets.length - 1; i >= 0; i--) {
 		bullets[i].update(delta);
@@ -329,6 +409,7 @@ function drawGame() {
 
 	// player
 	player.draw();
+	if (shield) shield.draw(ctx);
 
 	// enemies
 	enemies.forEach(e => e.draw());
