@@ -8,15 +8,11 @@ const ctx = canvas.getContext("2d");
 // Globals / debug
 // ------------------------
 let frame = 0;
-let fps = 0;
 let framesThisSecond = 0;
-let lastFpsUpdate = performance.now();
 
 // ------------------------
 // PLAYER
 // ------------------------
-ctx.fillRect(0, 0, 200, 100);
-
 class Player {
 	constructor(x, y, width, height) {
 		this.x = x;
@@ -36,7 +32,6 @@ class Player {
 
 		this.health = 100;
 		this.maxHealth = 100;
-
 		this.force = 100;
 		this.maxForce = 100;
 	}
@@ -64,7 +59,9 @@ class Player {
 		this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
 		// Force regen every 15 frames
-		if (frame % 15 === 0 && this.force < this.maxForce) this.force += 1;
+		if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
+			this.force = Math.min(this.maxForce, this.force + 1);
+		}
 	}
 
 	draw() {
@@ -73,10 +70,10 @@ class Player {
 		ctx.fillRect(this.x, this.y, this.width, this.height);
 
 		// HUD
-		
-		ctx.font = "24px sans-serif";
-		ctx.strokeText(`Health: ${this.health}/${this.maxHealth}`, 10, 30);
-		ctx.strokeText(`Force: ${this.force}/${this.maxForce}`, 10, 60);
+		ctx.font = "18px monospace";
+		ctx.fillStyle = "white";
+		ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
+		ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
 	}
 }
 
@@ -152,6 +149,8 @@ window.addEventListener("keyup", (e) => {
 // BULLETS
 // ------------------------
 const bullets = [];
+let lastShotTime = 0;
+const fireRate = 200;
 
 class Bullet {
 	constructor(x, y, targetX, targetY) {
@@ -185,21 +184,23 @@ class Bullet {
 	}
 }
 
-const mouse = { x: 0, y: 0 };
-
-canvas.addEventListener("mousemove", (event) => {
-	mouse.x = event.offsetX;
-	mouse.y = event.offsetY;
-});
-
 canvas.addEventListener("mousedown", (event) => {
 	const now = Date.now();
+	if (now - lastShotTime < fireRate || saber) return;
+	lastShotTime = now;
+
 	bullets.push(new Bullet(
 		player.x + player.width / 2,
 		player.y + player.height / 2,
 		event.offsetX,
 		event.offsetY
 	));
+});
+
+const mouse = { x: 0, y: 0 };
+canvas.addEventListener("mousemove", (event) => {
+	mouse.x = event.offsetX;
+	mouse.y = event.offsetY;
 });
 
 // ------------------------
@@ -227,8 +228,14 @@ class Lightsaber {
 		this.swingSpeed = 6; 
 		this.direction = direction;
 		this.active = true;
-		this.angle = 0;
-		this.endAngle = direction ? Math.PI / 2 : -Math.PI / 2;
+		
+		if (direction) {
+			this.angle = -Math.PI / 4;
+			this.endAngle = Math.PI / 4;
+		} else {
+			this.angle = Math.PI + Math.PI / 4;
+			this.endAngle = Math.PI - Math.PI / 4;
+		}
 	}
 
 	update(delta) {
@@ -245,11 +252,14 @@ class Lightsaber {
 	draw(ctx) {
 		if (!this.active) return;
 		ctx.save();
-		const pivotX = this.player.x + this.player.width / 2;
+
+		const pivotX = this.player.x + (this.direction ? this.player.width : 0);
 		const pivotY = this.player.y + this.player.height / 2;
+
 		ctx.translate(pivotX, pivotY);
 		ctx.rotate(this.angle);
 		ctx.fillStyle = "red";
+
 		ctx.fillRect(0, -this.width / 2, this.length, this.width);
 		ctx.restore();
 	}
@@ -355,7 +365,7 @@ function updateGame(delta) {
 	player.update(delta);
 
 	// Enemy spawn
-	enemyTimer += delta * 1000;
+	enemyTimer += timestep;
 	if (enemyTimer > enemyInterval) {
 		let y = Math.random() * (canvas.height / 3);
 		enemies.push(new Enemy(canvas.width, y, 50, 50));
@@ -370,12 +380,18 @@ function updateGame(delta) {
 		// Player collision
 		if (boxCollision(player, enemies[i])) {
 			const now = Date.now();
-			if (now - lastDamageTime > damageCooldown) {
+			if (now - lastDamageTime > damageCooldown && !shield) {
 				player.health -= 30;
 				lastDamageTime = now;
 				if (enemies[i].x < player.x) player.x += 20;
 				else player.x -= 20;
 				if (player.health < 0) player.health = 0;
+			} else if (now - lastDamageTime > damageCooldown && shield) {
+				player.force -= 30;
+				lastDamageTime = now;
+				if (enemies[i].x < player.x) player.x += 20;
+				else player.x -= 20;
+				if (player.force < 0) player.force = 0;
 			}
 		}
 	}
