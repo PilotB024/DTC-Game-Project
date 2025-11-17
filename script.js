@@ -152,6 +152,8 @@ const bullets = [];
 let lastShotTime = 0;
 const fireRate = 200;
 
+const enemyBullets = []; //New
+
 class Bullet {
 	constructor(x, y, targetX, targetY) {
 		this.x = x;
@@ -202,6 +204,7 @@ canvas.addEventListener("mousemove", (event) => {
 	mouse.x = event.offsetX;
 	mouse.y = event.offsetY;
 });
+
 
 // ------------------------
 // CROSSHAIR
@@ -322,6 +325,9 @@ class Enemy {
 		this.amplitude = 2;
 		this.frequency = 0.09;
 		this.markedForDeletion = false;
+		this.shotCooldown = 1500;  // New
+		this.lastShot = 0;  //New
+
 	}
 
 	update(delta) {
@@ -329,6 +335,17 @@ class Enemy {
 		this.y += Math.sin(this.angle) * this.amplitude;
 		this.angle += this.frequency;
 		if (this.x + this.width < 0) this.markedForDeletion = true;
+
+		const now = Date.now() //New Const
+		if(now - this.lastShot > this.shotCooldown){
+			enemyBullets.push(new Bullet(
+				this.x + this.width /2,
+				this.y + this.height /2,
+				player.x + player.width /2,
+				player.y + player.height /2
+				));
+			this.lastShot = now;
+		}
 	}
 
 	draw() {
@@ -377,6 +394,15 @@ function updateGame(delta) {
 		enemies[i].update(delta);
 		if (enemies[i].markedForDeletion) enemies.splice(i, 1);
 
+
+
+// ------------------------
+//Player bullets hitting enemies in progress
+// ------------------------
+
+
+
+
 		// Player collision
 		if (boxCollision(player, enemies[i])) {
 			const now = Date.now();
@@ -393,6 +419,27 @@ function updateGame(delta) {
 				else player.x -= 20;
 				if (player.force < 0) player.force = 0;
 			}
+		}
+	}
+
+	// Enemy bullets update
+	for (let i = enemyBullets.length - 1; i >= 0; i--) { // NEW
+		enemyBullets[i].update(delta);
+
+		if(enemyBullets [i].distanceTraveled >= enemyBullets[i].range){
+			enemyBullets.splice(i,1);
+			continue;
+		}
+
+		if(boxCollision(player,{
+			x:enemyBullets [i].x,
+			y:enemyBullets [i].y,
+			width: 20,
+			height: 5
+		}))
+		{
+			player.health -= 20;
+			enemyBullets.splice(i,i);
 		}
 	}
 
@@ -422,6 +469,7 @@ function drawGame() {
 	if (saber) saber.draw(ctx);
 
 	enemies.forEach(e => e.draw());
+	enemyBullets.forEach(b => b.draw(ctx));
 	bullets.forEach(b => b.draw(ctx));
 	drawCrosshair(ctx, mouse.x, mouse.y);
 }
