@@ -10,6 +10,23 @@ const ctx = canvas.getContext("2d");
 let frame = 0;
 let framesThisSecond = 0;
 
+
+
+// ------------------------
+// Hide cursor when mouse enters the canvas
+// ------------------------
+
+canvas.addEventListener("mouseenter", () => {
+  canvas.style.cursor = "none";
+});
+
+// Show cursor when mouse leaves the canvas
+canvas.addEventListener("mouseleave", () => {
+  canvas.style.cursor = "default";
+});
+
+
+
 // ------------------------
 // PLAYER
 // ------------------------
