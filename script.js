@@ -4,15 +4,14 @@
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
 const lukeImg = new Image();
-lukeImg.src = "./image/luke.png";
+lukeImg.src = "./img/luke1.png";
 
-<<<<<<< Updated upstream
+
 // ------------------------
 // Globals / debug
 // ------------------------
 let frame = 0;
 let framesThisSecond = 0;
-=======
 const LUKE_FRAME_W = 48;
 const LUKE_FRAME_H = 64;
 let lukeCol = 0;
@@ -20,7 +19,7 @@ let lukeRow = 0;
 
 lukeImg.onload = () => console.log("Luke loaded");
 lukeImg.onerror = () => console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
->>>>>>> Stashed changes
+
 
 
 
@@ -57,11 +56,11 @@ class Player {
 		this.jumpCount = 2;
 
 		this.moving = { left: false, right: false };
-<<<<<<< Updated upstream
+
 		this.direction = true;
-=======
+
 		this.faceing = 1; 
->>>>>>> Stashed changes
+
 
 		this.health = 100;
 		this.maxHealth = 100;
@@ -193,7 +192,7 @@ class Player {
 
 const player = new Player(100, 100, 50, 50);
 
-<<<<<<< Updated upstream
+
 // ------------------------
 // INPUT
 // ------------------------
@@ -207,7 +206,7 @@ window.addEventListener("keydown", (e) => {
 	if (blocked.includes(e.key)) e.preventDefault();
 });
 
-=======
+
 let last = performance.now();
 function gameLoop(now = performance.now()) {
 	const dt = now - last;
@@ -221,7 +220,7 @@ function gameLoop(now = performance.now()) {
 }
 
 // Input handling
->>>>>>> Stashed changes
+
 window.addEventListener("keydown", (e) => {
 	switch (e.key.toLowerCase()) {
 		case "a":
