@@ -7,7 +7,6 @@ const lukeImg = new Image();
 lukeImg.src = "./img/luke1.png";
 
 
-
 // ------------------------
 // Globals / debug
 // ------------------------
@@ -21,7 +20,6 @@ let lukeRow = 0;
 lukeImg.onload = () => console.log("Luke loaded");
 lukeImg.onerror = () =>
   console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
-
 
 
 
@@ -61,11 +59,14 @@ class Player {
     this.moving = { left: false, right: false };
     this.facing = 1;
 
+
     // Stats
     this.health = 100;
     this.maxHealth = 100;
     this.force = 100;
-    this.maxForce = 100;
+    this.maxForce = 100;	
+		this.direction = true;
+
 
     // Animation system
     this.frameW = 96; 
@@ -205,6 +206,7 @@ window.addEventListener("keydown", (e) => {
 	const blocked = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "];
 	if (blocked.includes(e.key)) e.preventDefault();
 });
+
 
 let last = performance.now();
 function gameLoop(now = performance.now()) {
