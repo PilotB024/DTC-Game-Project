@@ -58,6 +58,9 @@ class Player {
     this.jumpCount = 2;
     this.moving = { left: false, right: false };
     this.facing = 1;
+    this.isShooting = false; // shooting animation state
+    this.shootTimer = 0; // seconds left to keep current shoot_* anim
+
 
 
     // Stats
@@ -144,6 +147,14 @@ class Player {
   }
 
   update(dt) {
+  	    // --- shooting timer ---
+    if (this.isShooting) {
+      this.shootTimer -= dt;
+      if (this.shootTimer <= 0) {
+        this.isShooting = false; // allow movement states again
+      }
+    }
+
     // ===========================
     // HORIZONTAL MOVEMENT
     // ===========================
@@ -184,23 +195,25 @@ class Player {
       this.force = Math.min(this.maxForce, this.force + 1);
     }
 
-    // ===========================
+       // ===========================
     // STATE & ANIMATION
     // ===========================
-    if (!this.grounded) this.setState("jump");
-    else if (this.moving.left || this.moving.right) this.setState("run");
-    else this.setState("idle");
+    if (!this.isShooting) {
+      if (!this.grounded) this.setState("jump");
+      else if (this.moving.left || this.moving.right) this.setState("run");
+      else this.setState("idle");
+    }
 
-   // --- animation update ---
-		let anim = this.anims[this.state];
-		// safety fallback if state is missing
-		if (!anim) anim = this.anims.idle;
+    // --- animation frame advance ---
+    let anim = this.anims[this.state];
+    if (!anim) anim = this.anims.idle;
 
-		this.frameTimer += dt * 1000; // dt is in seconds, convert to ms
-		if (this.frameTimer >= 1000 / anim.fps) {
-		  this.frameTimer = 0;
-		  this.frameIndex = (this.frameIndex + 1) % anim.frames.length;
-		}
+    this.frameTimer += dt * 1000; // ms
+    if (this.frameTimer >= 1000 / anim.fps) {
+      this.frameTimer = 0;
+      this.frameIndex = (this.frameIndex + 1) % anim.frames.length;
+    }
+
   }
 
   draw() {
@@ -381,17 +394,55 @@ class Bullet {
 }
 
 canvas.addEventListener("mousedown", (event) => {
-	const now = Date.now();
-	if (now - lastShotTime < fireRate || saber) return;
-	lastShotTime = now;
+  const now = Date.now();
+  if (now - lastShotTime < fireRate || saber) return;
+  lastShotTime = now;
 
-	bullets.push(new Bullet(
-		player.x + player.width / 2,
-		player.y + player.height / 2,
-		event.offsetX,
-		event.offsetY
-	));
+  // ---------------------------------
+  // 1) Compute aim angle from Luke to mouse
+  // ---------------------------------
+  const originX = player.x + player.width  / 2;
+  const originY = player.y + player.height * 0.4; // roughly gun height
+
+  const dx = event.offsetX - originX;
+  const dy = event.offsetY - originY;
+  const angle = Math.atan2(dy, dx); // 0 = right, negative = up, positive = down
+
+  // ---------------------------------
+  // 2) Choose shooting animation based on angle + movement
+  // ---------------------------------
+  const moving = player.moving.left || player.moving.right;
+
+  // tweak these thresholds if you want:
+  const UP_THRESHOLD   = -0.6; // aim clearly upward  (~ -34°)
+  const DOWN_THRESHOLD =  0.4; // aim clearly downward (~ +23°)
+
+  let animName;
+  if (angle < UP_THRESHOLD) {
+    animName = "shoot_up";
+  } else if (angle > DOWN_THRESHOLD) {
+    animName = "shoot_down";
+  } else if (moving) {
+    animName = "shoot_run";
+  } else {
+    animName = "shoot_straight";
+  }
+
+  player.setState(animName);
+  player.isShooting = true;
+  player.shootTimer = 0.2; // show shoot anim for ~0.2 seconds
+
+  // ---------------------------------
+  // 3) Spawn the bullet exactly as before (toward the mouse)
+  // ---------------------------------
+  bullets.push(new Bullet(
+    originX,
+    originY,
+    event.offsetX,
+    event.offsetY
+  ));
 });
+
 
 const mouse = { x: 0, y: 0 };
 canvas.addEventListener("mousemove", (event) => {
