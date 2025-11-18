@@ -4,23 +4,25 @@
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
 const lukeImg = new Image();
-lukeImg.src = "./image/luke.png";
+lukeImg.src = "./img/luke1.png";
 
-<<<<<<< Updated upstream
+
+
 // ------------------------
 // Globals / debug
 // ------------------------
 let frame = 0;
 let framesThisSecond = 0;
-=======
 const LUKE_FRAME_W = 48;
 const LUKE_FRAME_H = 64;
 let lukeCol = 0;
 let lukeRow = 0; 
 
 lukeImg.onload = () => console.log("Luke loaded");
-lukeImg.onerror = () => console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
->>>>>>> Stashed changes
+lukeImg.onerror = () =>
+  console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
+
+
 
 
 
@@ -43,40 +45,39 @@ canvas.addEventListener("mouseleave", () => {
 // PLAYER
 // ------------------------
 class Player {
-	constructor(x, y, width, height) {
-		this.x = x;
-		this.y = y;
-		this.width = width;
-		this.height = height;
+  constructor(x, y, width, height) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
 
-		this.speed = 300;      
-		this.velocityY = 0;
-		this.gravity = 2000;   
-		this.jumpForce = 900;  
-		this.grounded = false;
-		this.jumpCount = 2;
+    // Movement
+    this.speed = 300;
+    this.velocityY = 0;
+    this.gravity = 2000;
+    this.jumpForce = 900;
+    this.grounded = false;
+    this.jumpCount = 2;
+    this.moving = { left: false, right: false };
+    this.facing = 1;
 
-		this.moving = { left: false, right: false };
-<<<<<<< Updated upstream
-		this.direction = true;
-=======
-		this.faceing = 1; 
->>>>>>> Stashed changes
+    // Stats
+    this.health = 100;
+    this.maxHealth = 100;
+    this.force = 100;
+    this.maxForce = 100;
 
-		this.health = 100;
-		this.maxHealth = 100;
-		this.force = 100;
-		this.maxForce = 100;
-		    this.frameW = 48;   // <— try 48/56/64 depending on your sheet
-    this.frameH = 64;   // <— height of one frame
-    this.scale  = 1.5;  // on-screen scale
+    // Animation system
+    this.frameW = 96; 
+    this.frameH = 96;
+    this.scale = 1.3;
 
     this.animations = {
       idle: { row: 0, len: 6, fps: 8 },
       run:  { row: 1, len: 8, fps: 12 },
-      jump: { row: 2, len: 2, fps: 6 },
-      // add: saber: { row: 5, len: 6, fps: 14 } when you’re ready
+      jump: { row: 2, len: 2, fps: 6 }
     };
+
     this.state = "idle";
     this.frameIndex = 0;
     this.frameTimer = 0;
@@ -91,21 +92,27 @@ class Player {
   }
 
   update(dt) {
-    // --- Horizontal movement ---
+    // ===========================
+    // HORIZONTAL MOVEMENT
+    // ===========================
     if (this.moving.left && !this.moving.right) {
-      this.x -= this.speed;
+      this.x -= this.speed * dt;
       this.facing = -1;
     }
     if (this.moving.right && !this.moving.left) {
-      this.x += this.speed;
+      this.x += this.speed * dt;
       this.facing = 1;
     }
 
-    // --- Gravity ---
-    this.velocityY += this.gravity;
-    this.y += this.velocityY;
+    // ===========================
+    // GRAVITY
+    // ===========================
+    this.velocityY += this.gravity * dt;
+    this.y += this.velocityY * dt;
 
-    // --- Ground collision ---
+    // ===========================
+    // GROUND COLLISION
+    // ===========================
     if (this.y + this.height >= canvas.height) {
       this.y = canvas.height - this.height;
       this.velocityY = 0;
@@ -115,85 +122,77 @@ class Player {
       this.grounded = false;
     }
 
-    // --- Bounds ---
+    // Clamp horizontal bounds
     this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
-    // --- Choose animation state ---
+    // ===========================
+    // FORCE REGEN
+    // ===========================
+    if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
+      this.force = Math.min(this.maxForce, this.force + 1);
+    }
+
+    // ===========================
+    // STATE & ANIMATION
+    // ===========================
     if (!this.grounded) this.setState("jump");
     else if (this.moving.left || this.moving.right) this.setState("run");
     else this.setState("idle");
 
-    // --- Animate ---
-    const { fps, len } = this.animations[this.state];
-    this.frameTimer += dt;
-    const msPerFrame = 1000 / fps;
-    if (this.frameTimer >= msPerFrame) {
-      this.frameTimer -= msPerFrame;
+    const { row, len, fps } = this.animations[this.state];
+    this.row = row;
+
+    this.frameTimer += dt * 1000;
+    if (this.frameTimer >= 1000 / fps) {
+      this.frameTimer = 0;
       this.frameIndex = (this.frameIndex + 1) % len;
     }
   }
 
-	draw() {
-	  // keep your future hitbox first
-	  ctx.fillStyle = "lime";
-	  ctx.fillRect(this.x, this.y, this.width, this.height);
+  draw() {
+    // Draw player hitbox (debug)
+    // ctx.fillStyle = "lime";
+    // ctx.fillRect(this.x, this.y, this.width, this.height);
 
-	  // then draw Luke on top
-	  if (!lukeImg.complete) return;
+    // Draw Luke
+    if (!lukeImg.complete) return;
 
-	  const sx = lukeCol * LUKE_FRAME_W;
-	  const sy = lukeRow * LUKE_FRAME_H;
+    const sx = this.frameIndex * this.frameW;
+    const sy = this.row * this.frameH;
 
-	  // scale to your hitbox for now
-	  ctx.drawImage(lukeImg, sx, sy, sw, sh, this.x, this.y, this.width, this.height);
-	}
-	
+    ctx.save();
 
-	update(delta) {
-		// Horizontal
-		if (this.moving.left && !this.moving.right) this.x -= this.speed * delta;
-		if (this.moving.right && !this.moving.left) this.x += this.speed * delta;
+    if (this.facing === -1) {
+      ctx.translate(this.x + this.width, this.y);
+      ctx.scale(-1, 1);
+      ctx.drawImage(
+        lukeImg,
+        sx, sy, this.frameW, this.frameH,
+        0, 0,
+        this.width, this.height
+      );
+    } else {
+      ctx.drawImage(
+        lukeImg,
+        sx, sy, this.frameW, this.frameH,
+        this.x, this.y,
+        this.width, this.height
+      );
+    }
 
-		// Gravity / vertical
-		this.velocityY += this.gravity * delta;
-		this.y += this.velocityY * delta;
+    ctx.restore();
 
-		// Ground collision
-		if (this.y + this.height >= canvas.height) {
-			this.y = canvas.height - this.height;
-			this.velocityY = 0;
-			this.grounded = true;
-			this.jumpCount = 2;
-		} else {
-			this.grounded = false;
-		}
-
-		// Keep player within horizontal bounds
-		this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
-
-		// Force regen every 15 frames
-		if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
-			this.force = Math.min(this.maxForce, this.force + 1);
-		}
-	}
-
-	draw() {
-		// Player
-		ctx.fillStyle = "lime";
-		ctx.fillRect(this.x, this.y, this.width, this.height);
-
-		// HUD
-		ctx.font = "18px monospace";
-		ctx.fillStyle = "white";
-		ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
-		ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
-	}
-
+    // HUD
+    ctx.font = "18px monospace";
+    ctx.fillStyle = "white";
+    ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
+    ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
+  }
 }
+
 
 const player = new Player(100, 100, 50, 50);
 
-<<<<<<< Updated upstream
 // ------------------------
 // INPUT
 // ------------------------
@@ -207,7 +206,6 @@ window.addEventListener("keydown", (e) => {
 	if (blocked.includes(e.key)) e.preventDefault();
 });
 
-=======
 let last = performance.now();
 function gameLoop(now = performance.now()) {
 	const dt = now - last;
@@ -221,7 +219,7 @@ function gameLoop(now = performance.now()) {
 }
 
 // Input handling
->>>>>>> Stashed changes
+
 window.addEventListener("keydown", (e) => {
 	switch (e.key.toLowerCase()) {
 		case "a":
