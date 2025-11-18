@@ -59,7 +59,8 @@ class Player {
 		this.health = 100;
 		this.maxHealth = 100;
 		this.force = 100;
-		this.maxForce = 100;	
+		this.maxForce = 100;
+		this.score = 0;
 		this.direction = true;
 
 	    // Animation system
@@ -186,6 +187,11 @@ class Player {
       		this.force = Math.min(this.maxForce, this.force + 1);
     	}
 
+    	// ===========================
+	    // PLAYER SCORE
+	    // ===========================
+	    if (frame % 60 === 0) this.score++;
+
 	    // ===========================
 	    // STATE & ANIMATION
 	    // ===========================
@@ -208,10 +214,6 @@ class Player {
   	}
 
   	draw() {
-		// Draw player hitbox (debug)
-		// ctx.fillStyle = "lime";
-		// ctx.fillRect(this.x, this.y, this.width, this.height);
-
 		// Draw Luke
 		if (!lukeImg.complete) return;
 
@@ -255,6 +257,7 @@ class Player {
 	    ctx.fillStyle = "white";
 	    ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
 	    ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
+	    ctx.fillText(`Score: ${this.score}`, 10, 62);
   	}
 }
 
@@ -295,7 +298,7 @@ window.addEventListener("keydown", (e) => {
 				player.jumpCount--;
 			} else if (player.jumpCount > 0 && player.force >= 20) {
 				player.velocityY = -player.jumpForce;
-				player.force -= 20;
+				player.force -= 10;
 				player.jumpCount--;
 			}
 			break;
@@ -338,11 +341,11 @@ const fireRate = 200;
 const enemyBullets = []; //New
 
 class Bullet {
-	constructor(x, y, targetX, targetY) {
+	constructor(x, y, targetX, targetY, speed, range) {
 		this.x = x;
 		this.y = y;
-		this.speed = 1200; 
-		this.range = 500; 
+		this.speed = speed; 
+		this.range = range; 
 		this.distanceTraveled = 0;
 
 		const diffX = targetX - x;
@@ -415,7 +418,9 @@ canvas.addEventListener("mousedown", (event) => {
 		originX,
 		originY,
 		event.offsetX,
-		event.offsetY
+		event.offsetY,
+		1200,
+		500
 	));
 });
 
@@ -563,7 +568,9 @@ class Enemy {
 				this.x + this.width /2,
 				this.y + this.height /2,
 				player.x + player.width /2,
-				player.y + player.height /2
+				player.y + player.height /2,
+				500,
+				500
 				));
 			this.lastShot = now;
 		}
@@ -625,13 +632,13 @@ function updateGame(delta) {
 		if (boxCollision(player, enemies[i])) {
 			const now = Date.now();
 			if (now - lastDamageTime > damageCooldown && !shield) {
-				player.health -= 30;
+				player.health -= 20;
 				lastDamageTime = now;
 				if (enemies[i].x < player.x) player.x += 20;
 				else player.x -= 20;
 				if (player.health < 0) player.health = 0;
 			} else if (now - lastDamageTime > damageCooldown && shield) {
-				player.force -= 30;
+				player.force -= 20;
 				lastDamageTime = now;
 				if (enemies[i].x < player.x) player.x += 20;
 				else player.x -= 20;
@@ -649,15 +656,23 @@ function updateGame(delta) {
 			continue;
 		}
 
-		if (boxCollision(player,{
+		if (boxCollision(player, {
 			x:enemyBullets [i].x,
 			y:enemyBullets [i].y,
 			width: 20,
 			height: 5
-		}))
+		})) 
 		{
-			player.health -= 20;
-			enemyBullets.splice(i,i);
+			if (!shield) {
+				player.health -= 5;
+				if (player.health < 0) player.health = 0;
+				enemyBullets.splice(i, 1);
+			} else {
+				player.force -= 5;
+				if (player.force < 0) player.force = 0;
+				enemyBullets.splice(i, 1);
+			}
+			
 		}
 	}
 
@@ -693,6 +708,7 @@ function drawGame() {
 }
 
 function gameLoop(timestamp) {
+	// if (player && player.health <= 0) console.log("Game Over!");
 	let frameTime = timestamp - lastTime;
 	if (frameTime > 1000) frameTime = 1000;
 	lastTime = timestamp;
