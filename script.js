@@ -3,12 +3,24 @@
 // ========================
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
+const lukeImg = new Image();
+lukeImg.src = "./image/luke.png";
 
+<<<<<<< Updated upstream
 // ------------------------
 // Globals / debug
 // ------------------------
 let frame = 0;
 let framesThisSecond = 0;
+=======
+const LUKE_FRAME_W = 48;
+const LUKE_FRAME_H = 64;
+let lukeCol = 0;
+let lukeRow = 0; 
+
+lukeImg.onload = () => console.log("Luke loaded");
+lukeImg.onerror = () => console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
+>>>>>>> Stashed changes
 
 // ------------------------
 // PLAYER
@@ -28,13 +40,97 @@ class Player {
 		this.jumpCount = 2;
 
 		this.moving = { left: false, right: false };
+<<<<<<< Updated upstream
 		this.direction = true;
+=======
+		this.faceing = 1; 
+>>>>>>> Stashed changes
 
 		this.health = 100;
 		this.maxHealth = 100;
 		this.force = 100;
 		this.maxForce = 100;
+		    this.frameW = 48;   // <— try 48/56/64 depending on your sheet
+    this.frameH = 64;   // <— height of one frame
+    this.scale  = 1.5;  // on-screen scale
+
+    this.animations = {
+      idle: { row: 0, len: 6, fps: 8 },
+      run:  { row: 1, len: 8, fps: 12 },
+      jump: { row: 2, len: 2, fps: 6 },
+      // add: saber: { row: 5, len: 6, fps: 14 } when you’re ready
+    };
+    this.state = "idle";
+    this.frameIndex = 0;
+    this.frameTimer = 0;
+  }
+
+  setState(next) {
+    if (this.state !== next) {
+      this.state = next;
+      this.frameIndex = 0;
+      this.frameTimer = 0;
+    }
+  }
+
+  update(dt) {
+    // --- Horizontal movement ---
+    if (this.moving.left && !this.moving.right) {
+      this.x -= this.speed;
+      this.facing = -1;
+    }
+    if (this.moving.right && !this.moving.left) {
+      this.x += this.speed;
+      this.facing = 1;
+    }
+
+    // --- Gravity ---
+    this.velocityY += this.gravity;
+    this.y += this.velocityY;
+
+    // --- Ground collision ---
+    if (this.y + this.height >= canvas.height) {
+      this.y = canvas.height - this.height;
+      this.velocityY = 0;
+      this.grounded = true;
+      this.jumpCount = 2;
+    } else {
+      this.grounded = false;
+    }
+
+    // --- Bounds ---
+    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+
+    // --- Choose animation state ---
+    if (!this.grounded) this.setState("jump");
+    else if (this.moving.left || this.moving.right) this.setState("run");
+    else this.setState("idle");
+
+    // --- Animate ---
+    const { fps, len } = this.animations[this.state];
+    this.frameTimer += dt;
+    const msPerFrame = 1000 / fps;
+    if (this.frameTimer >= msPerFrame) {
+      this.frameTimer -= msPerFrame;
+      this.frameIndex = (this.frameIndex + 1) % len;
+    }
+  }
+
+	draw() {
+	  // keep your future hitbox first
+	  ctx.fillStyle = "lime";
+	  ctx.fillRect(this.x, this.y, this.width, this.height);
+
+	  // then draw Luke on top
+	  if (!lukeImg.complete) return;
+
+	  const sx = lukeCol * LUKE_FRAME_W;
+	  const sy = lukeRow * LUKE_FRAME_H;
+
+	  // scale to your hitbox for now
+	  ctx.drawImage(lukeImg, sx, sy, sw, sh, this.x, this.y, this.width, this.height);
 	}
+	
 
 	update(delta) {
 		// Horizontal
@@ -75,10 +171,12 @@ class Player {
 		ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
 		ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
 	}
+
 }
 
 const player = new Player(100, 100, 50, 50);
 
+<<<<<<< Updated upstream
 // ------------------------
 // INPUT
 // ------------------------
@@ -92,6 +190,21 @@ window.addEventListener("keydown", (e) => {
 	if (blocked.includes(e.key)) e.preventDefault();
 });
 
+=======
+let last = performance.now();
+function gameLoop(now = performance.now()) {
+	const dt = now - last;
+	last = now; 
+
+	ctx.clearRect(0, 0, canvas.width, canvas.height);
+	player.update(dt);
+	player.draw();
+
+	requestAnimationFrame(gameLoop);
+}
+
+// Input handling
+>>>>>>> Stashed changes
 window.addEventListener("keydown", (e) => {
 	switch (e.key.toLowerCase()) {
 		case "a":
