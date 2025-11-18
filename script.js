@@ -18,180 +18,238 @@ let lukeCol = 0;
 let lukeRow = 0; 
 
 lukeImg.onload = () => console.log("Luke loaded");
-lukeImg.onerror = () => console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
-
-
-
+lukeImg.onerror = () =>
+		console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
 
 // ------------------------
 // Hide cursor when mouse enters the canvas
 // ------------------------
 
 canvas.addEventListener("mouseenter", () => {
-  canvas.style.cursor = "none";
+  	canvas.style.cursor = "none";
 });
 
 // Show cursor when mouse leaves the canvas
 canvas.addEventListener("mouseleave", () => {
-  canvas.style.cursor = "default";
+  	canvas.style.cursor = "default";
 });
-
-
 
 // ------------------------
 // PLAYER
 // ------------------------
 class Player {
-	constructor(x, y, width, height) {
+  	constructor(x, y, width, height) {
 		this.x = x;
 		this.y = y;
 		this.width = width;
 		this.height = height;
 
-		this.speed = 300;      
+		// Movement
+		this.speed = 300;
 		this.velocityY = 0;
-		this.gravity = 2000;   
-		this.jumpForce = 900;  
+		this.gravity = 2000;
+		this.jumpForce = 900;
 		this.grounded = false;
 		this.jumpCount = 2;
-
 		this.moving = { left: false, right: false };
-
-		this.direction = true;
-
-		this.faceing = 1; 
+		this.facing = 1;
 
 
+		// Stats
 		this.health = 100;
 		this.maxHealth = 100;
 		this.force = 100;
-		this.maxForce = 100;
-		    this.frameW = 48;   // <— try 48/56/64 depending on your sheet
-    this.frameH = 64;   // <— height of one frame
-    this.scale  = 1.5;  // on-screen scale
+		this.maxForce = 100;	
+		this.direction = true;
 
-    this.animations = {
-      idle: { row: 0, len: 6, fps: 8 },
-      run:  { row: 1, len: 8, fps: 12 },
-      jump: { row: 2, len: 2, fps: 6 },
-      // add: saber: { row: 5, len: 6, fps: 14 } when you’re ready
-    };
-    this.state = "idle";
-    this.frameIndex = 0;
-    this.frameTimer = 0;
-  }
 
-  setState(next) {
-    if (this.state !== next) {
-      this.state = next;
-      this.frameIndex = 0;
-      this.frameTimer = 0;
-    }
-  }
+		// Animation system
+		this.frameW = 96; 
+		this.frameH = 96;
+		this.scale = 1.3;
 
-  update(dt) {
-    // --- Horizontal movement ---
+    	this.anims = {
+		  	idle: {
+				sheet: "neutral",
+				frames: [0],
+				fps: 4
+  			},
+
+  			run: {
+				sheet: "neutral",
+				frames: [11,10,9,8,7,6,5,4],
+				fps: 16
+  			},
+
+  			jump: {
+				sheet: "neutral",
+				frames: [30,31,32,33,34,35],
+				fps: 10
+  			},
+
+  			shoot_straight: {
+				sheet: "neutral",
+				frames: [12,13],
+				fps: 12
+  			},
+
+  			shoot_run: {
+				sheet: "neutral",
+				frames: [11,10,9,8],
+				fps: 16
+  			},
+
+  			shoot_up: {
+				sheet: "neutral",
+				frames: [14,15],
+				fps: 12
+  			},
+
+  			shoot_down: {
+				sheet: "neutral",
+				frames: [16,17],
+				fps: 12
+  			}
+		};
+
+		// animation playback state
+		this.state = "idle";
+		this.frame = 0;
+		this.timer = 0;
+
+		// your frame size (keep using your current values)
+		this.frameW = 96;
+		this.frameH = 96;
+
+		// your scaling stays as-is
+		this.scale = 1.3;
+
+	    this.state = "idle";
+	    this.frameIndex = 0;
+	    this.frameTimer = 0;
+  	}
+
+  	setState(next) {
+		if (this.state !== next) {
+  			this.state = next;
+  			this.frameIndex = 0;
+  			this.frameTimer = 0;
+		}
+  	}	
+
+  update(delta) {
+    // ===========================
+    // HORIZONTAL MOVEMENT
+    // ===========================
     if (this.moving.left && !this.moving.right) {
-      this.x -= this.speed;
-      this.facing = -1;
+      	this.x -= this.speed * delta;
+      	this.facing = -1;
     }
     if (this.moving.right && !this.moving.left) {
-      this.x += this.speed;
-      this.facing = 1;
+      	this.x += this.speed * delta;
+      	this.facing = 1;
     }
 
-    // --- Gravity ---
-    this.velocityY += this.gravity;
-    this.y += this.velocityY;
+    // ===========================
+    // GRAVITY
+    // ===========================
+    this.velocityY += this.gravity * delta;
+    this.y += this.velocityY * delta;
 
-    // --- Ground collision ---
+    // ===========================
+    // GROUND COLLISION
+    // ===========================
     if (this.y + this.height >= canvas.height) {
-      this.y = canvas.height - this.height;
-      this.velocityY = 0;
-      this.grounded = true;
-      this.jumpCount = 2;
+      	this.y = canvas.height - this.height;
+      	this.velocityY = 0;
+      	this.grounded = true;
+      	this.jumpCount = 2;
     } else {
-      this.grounded = false;
+      	this.grounded = false;
     }
 
-    // --- Bounds ---
+    // Clamp horizontal bounds
     this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
-    // --- Choose animation state ---
+    // ===========================
+    // FORCE REGEN
+    // ===========================
+    if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
+      	this.force = Math.min(this.maxForce, this.force + 1);
+    }
+
+    // ===========================
+    // STATE & ANIMATION
+    // ===========================
     if (!this.grounded) this.setState("jump");
     else if (this.moving.left || this.moving.right) this.setState("run");
     else this.setState("idle");
 
-    // --- Animate ---
-    const { fps, len } = this.animations[this.state];
-    this.frameTimer += dt;
-    const msPerFrame = 1000 / fps;
-    if (this.frameTimer >= msPerFrame) {
-      this.frameTimer -= msPerFrame;
-      this.frameIndex = (this.frameIndex + 1) % len;
-    }
+   // --- animation update ---
+		let anim = this.anims[this.state];
+		// safety fallback if state is missing
+		if (!anim) anim = this.anims.idle;
+
+		this.frameTimer += delta * 1000; // delta is in seconds, convert to ms
+		if (this.frameTimer >= 1000 / anim.fps) {
+		  	this.frameTimer = 0;
+		  	this.frameIndex = (this.frameIndex + 1) % anim.frames.length;
+		}
   }
 
-	draw() {
-	  // keep your future hitbox first
-	  ctx.fillStyle = "lime";
-	  ctx.fillRect(this.x, this.y, this.width, this.height);
+  draw() {
+    // Draw player hitbox (debug)
+    // ctx.fillStyle = "lime";
+    // ctx.fillRect(this.x, this.y, this.width, this.height);
 
-	  // then draw Luke on top
-	  if (!lukeImg.complete) return;
+    // Draw Luke
+    if (!lukeImg.complete) return;
 
-	  const sx = lukeCol * LUKE_FRAME_W;
-	  const sy = lukeRow * LUKE_FRAME_H;
+    let anim = this.anims[this.state];
+	if (!anim) anim = this.anims.idle;
 
-	  // scale to your hitbox for now
-	  ctx.drawImage(lukeImg, sx, sy, sw, sh, this.x, this.y, this.width, this.height);
-	}
-	
+	const index = anim.frames[this.frameIndex];
 
-	update(delta) {
-		// Horizontal
-		if (this.moving.left && !this.moving.right) this.x -= this.speed * delta;
-		if (this.moving.right && !this.moving.left) this.x += this.speed * delta;
 
-		// Gravity / vertical
-		this.velocityY += this.gravity * delta;
-		this.y += this.velocityY * delta;
+	// your sheet has 10 columns
+	const COLS = 10;
 
-		// Ground collision
-		if (this.y + this.height >= canvas.height) {
-			this.y = canvas.height - this.height;
-			this.velocityY = 0;
-			this.grounded = true;
-			this.jumpCount = 2;
-		} else {
-			this.grounded = false;
-		}
+	// convert frame index → sheet coordinates
+	const sx = (index % COLS) * this.frameW;
+	const sy = Math.floor(index / COLS) * this.frameH;
 
-		// Keep player within horizontal bounds
-		this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
-		// Force regen every 15 frames
-		if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
-			this.force = Math.min(this.maxForce, this.force + 1);
-		}
-	}
+    ctx.save();
 
-	draw() {
-		// Player
-		ctx.fillStyle = "lime";
-		ctx.fillRect(this.x, this.y, this.width, this.height);
+    if (this.facing === -1) {
+      	ctx.translate(this.x + this.width, this.y);
+      	ctx.scale(-1, 1);
+      	ctx.drawImage(
+        	lukeImg,
+        	sx, sy, this.frameW, this.frameH,
+        	0, 0,
+        	this.width, this.height
+      	);
+    } else {
+      	ctx.drawImage(
+        	lukeImg,
+        	sx, sy, this.frameW, this.frameH,
+        	this.x, this.y,
+        	this.width, this.height
+      	);
+    }
 
-		// HUD
-		ctx.font = "18px monospace";
-		ctx.fillStyle = "white";
-		ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
-		ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
-	}
+    ctx.restore();
 
+    // HUD
+    ctx.font = "18px monospace";
+    ctx.fillStyle = "white";
+    ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
+    ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
+  }
 }
 
-const player = new Player(100, 100, 50, 50);
-
+const player = new Player(100, 100, 96, 96);
 
 // ------------------------
 // INPUT
@@ -205,19 +263,6 @@ window.addEventListener("keydown", (e) => {
 	const blocked = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", " "];
 	if (blocked.includes(e.key)) e.preventDefault();
 });
-
-
-let last = performance.now();
-function gameLoop(now = performance.now()) {
-	const dt = now - last;
-	last = now; 
-
-	ctx.clearRect(0, 0, canvas.width, canvas.height);
-	player.update(dt);
-	player.draw();
-
-	requestAnimationFrame(gameLoop);
-}
 
 // Input handling
 
@@ -525,12 +570,9 @@ function updateGame(delta) {
 
 
 
-// ------------------------
-//Player bullets hitting enemies in progress
-// ------------------------
-
-
-
+		// ------------------------
+		//Player bullets hitting enemies in progress
+		// ------------------------
 
 		// Player collision
 		if (boxCollision(player, enemies[i])) {
@@ -560,7 +602,7 @@ function updateGame(delta) {
 			continue;
 		}
 
-		if(boxCollision(player,{
+		if (boxCollision(player,{
 			x:enemyBullets [i].x,
 			y:enemyBullets [i].y,
 			width: 20,
