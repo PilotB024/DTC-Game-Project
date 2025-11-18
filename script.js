@@ -22,6 +22,23 @@ lukeImg.onload = () => console.log("Luke loaded");
 lukeImg.onerror = () => console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
 >>>>>>> Stashed changes
 
+
+
+// ------------------------
+// Hide cursor when mouse enters the canvas
+// ------------------------
+
+canvas.addEventListener("mouseenter", () => {
+  canvas.style.cursor = "none";
+});
+
+// Show cursor when mouse leaves the canvas
+canvas.addEventListener("mouseleave", () => {
+  canvas.style.cursor = "default";
+});
+
+
+
 // ------------------------
 // PLAYER
 // ------------------------
