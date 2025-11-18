@@ -73,11 +73,62 @@ class Player {
     this.frameH = 96;
     this.scale = 1.3;
 
-    this.animations = {
-      idle: { row: 0, len: 6, fps: 8 },
-      run:  { row: 1, len: 8, fps: 12 },
-      jump: { row: 2, len: 2, fps: 6 }
-    };
+    this.anims = {
+		  idle: {
+		    sheet: "neutral",
+		    frames: [0],
+		    fps: 4
+		  },
+
+		  run: {
+		    sheet: "neutral",
+		    frames: [11,10,9,8,7,6,5,4],
+		    fps: 16
+		  },
+
+		  jump: {
+		    sheet: "neutral",
+		    frames: [30,31,32,33,34,35],
+		    fps: 10
+		  },
+
+		  shoot_straight: {
+		    sheet: "neutral",
+		    frames: [12,13],
+		    fps: 12
+		  },
+
+		  shoot_run: {
+		    sheet: "neutral",
+		    frames: [11,10,9,8],
+		    fps: 16
+		  },
+
+		  shoot_up: {
+		    sheet: "neutral",
+		    frames: [14,15],
+		    fps: 12
+		  },
+
+		  shoot_down: {
+		    sheet: "neutral",
+		    frames: [16,17],
+		    fps: 12
+		  }
+		};
+
+		// animation playback state
+		this.state = "idle";
+		this.frame = 0;
+		this.timer = 0;
+
+		// your frame size (keep using your current values)
+		this.frameW = 96;
+		this.frameH = 96;
+
+		// your scaling stays as-is
+		this.scale = 1.3;
+
 
     this.state = "idle";
     this.frameIndex = 0;
@@ -140,14 +191,16 @@ class Player {
     else if (this.moving.left || this.moving.right) this.setState("run");
     else this.setState("idle");
 
-    const { row, len, fps } = this.animations[this.state];
-    this.row = row;
+   // --- animation update ---
+		let anim = this.anims[this.state];
+		// safety fallback if state is missing
+		if (!anim) anim = this.anims.idle;
 
-    this.frameTimer += dt * 1000;
-    if (this.frameTimer >= 1000 / fps) {
-      this.frameTimer = 0;
-      this.frameIndex = (this.frameIndex + 1) % len;
-    }
+		this.frameTimer += dt * 1000; // dt is in seconds, convert to ms
+		if (this.frameTimer >= 1000 / anim.fps) {
+		  this.frameTimer = 0;
+		  this.frameIndex = (this.frameIndex + 1) % anim.frames.length;
+		}
   }
 
   draw() {
@@ -158,8 +211,19 @@ class Player {
     // Draw Luke
     if (!lukeImg.complete) return;
 
-    const sx = this.frameIndex * this.frameW;
-    const sy = this.row * this.frameH;
+    let anim = this.anims[this.state];
+		if (!anim) anim = this.anims.idle;
+
+		const index = anim.frames[this.frameIndex];
+
+
+		// your sheet has 10 columns
+		const COLS = 10;
+
+		// convert frame index → sheet coordinates
+		const sx = (index % COLS) * this.frameW;
+		const sy = Math.floor(index / COLS) * this.frameH;
+
 
     ctx.save();
 
@@ -192,7 +256,7 @@ class Player {
 }
 
 
-const player = new Player(100, 100, 50, 50);
+const player = new Player(100, 100, 96, 96);
 
 // ------------------------
 // INPUT
