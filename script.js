@@ -19,7 +19,7 @@ let lukeRow = 0;
 
 lukeImg.onload = () => console.log("Luke loaded");
 lukeImg.onerror = () =>
-		console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
+	console.error("Bad path:", new URL(lukeImg.src, document.baseURI).href);
 
 // ------------------------
 // Hide cursor when mouse enters the canvas
@@ -62,54 +62,53 @@ class Player {
 		this.maxForce = 100;	
 		this.direction = true;
 
+	    // Animation system
+	    this.frameW = 96; 
+	    this.frameH = 96;
+	    this.scale = 1.3;
 
-		// Animation system
-		this.frameW = 96; 
-		this.frameH = 96;
-		this.scale = 1.3;
-
-    	this.anims = {
+		this.anims = {
 		  	idle: {
 				sheet: "neutral",
 				frames: [0],
 				fps: 4
-  			},
+			},
 
-  			run: {
+			run: {
 				sheet: "neutral",
 				frames: [11,10,9,8,7,6,5,4],
 				fps: 16
-  			},
+			},
 
-  			jump: {
+			jump: {
 				sheet: "neutral",
 				frames: [30,31,32,33,34,35],
 				fps: 10
-  			},
+			},
 
-  			shoot_straight: {
+			shoot_straight: {
 				sheet: "neutral",
 				frames: [12,13],
 				fps: 12
-  			},
+			},
 
-  			shoot_run: {
+			shoot_run: {
 				sheet: "neutral",
 				frames: [11,10,9,8],
 				fps: 16
-  			},
+			},
 
-  			shoot_up: {
+			shoot_up: {
 				sheet: "neutral",
 				frames: [14,15],
 				fps: 12
-  			},
+			},
 
-  			shoot_down: {
+			shoot_down: {
 				sheet: "neutral",
 				frames: [16,17],
 				fps: 12
-  			}
+			}
 		};
 
 		// animation playback state
@@ -127,65 +126,76 @@ class Player {
 	    this.state = "idle";
 	    this.frameIndex = 0;
 	    this.frameTimer = 0;
-  	}
+	}
 
-  	setState(next) {
+	setState(next) {
 		if (this.state !== next) {
-  			this.state = next;
-  			this.frameIndex = 0;
-  			this.frameTimer = 0;
+			this.state = next;
+			this.frameIndex = 0;
+			this.frameTimer = 0;
 		}
-  	}	
+	}	
 
-  update(delta) {
-    // ===========================
-    // HORIZONTAL MOVEMENT
-    // ===========================
-    if (this.moving.left && !this.moving.right) {
-      	this.x -= this.speed * delta;
-      	this.facing = -1;
-    }
-    if (this.moving.right && !this.moving.left) {
-      	this.x += this.speed * delta;
-      	this.facing = 1;
-    }
+  	update(delta) {
+  	    // --- shooting timer ---
+	    if (this.isShooting) {
+	      	this.shootTimer -= dt;
+	      	if (this.shootTimer <= 0) {
+	        	this.isShooting = false; // allow movement states again
+	      	}
+	    }
 
-    // ===========================
-    // GRAVITY
-    // ===========================
-    this.velocityY += this.gravity * delta;
-    this.y += this.velocityY * delta;
+	    // ===========================
+	    // HORIZONTAL MOVEMENT
+	    // ===========================
+	    if (this.moving.left && !this.moving.right) {
+	      	this.x -= this.speed * delta;
+	      	this.facing = -1;
+	    }
+	    if (this.moving.right && !this.moving.left) {
+	      	this.x += this.speed * delta;
+	      	this.facing = 1;
+	    }
 
-    // ===========================
-    // GROUND COLLISION
-    // ===========================
-    if (this.y + this.height >= canvas.height) {
-      	this.y = canvas.height - this.height;
-      	this.velocityY = 0;
-      	this.grounded = true;
-      	this.jumpCount = 2;
-    } else {
-      	this.grounded = false;
-    }
+	    // ===========================
+	    // GRAVITY
+	    // ===========================
+	    this.velocityY += this.gravity * delta;
+	    this.y += this.velocityY * delta;
 
-    // Clamp horizontal bounds
-    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
-    // ===========================
-    // FORCE REGEN
-    // ===========================
-    if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
-      	this.force = Math.min(this.maxForce, this.force + 1);
-    }
+	    // ===========================
+	    // GROUND COLLISION
+	    // ===========================
+	    if (this.y + this.height >= canvas.height) {
+	      	this.y = canvas.height - this.height;
+	      	this.velocityY = 0;
+	      	this.grounded = true;
+	      	this.jumpCount = 2;
+	    } else {
+	      	this.grounded = false;
+	    }
 
-    // ===========================
-    // STATE & ANIMATION
-    // ===========================
-    if (!this.grounded) this.setState("jump");
-    else if (this.moving.left || this.moving.right) this.setState("run");
-    else this.setState("idle");
+	    // Clamp horizontal bounds
+	    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
-   // --- animation update ---
+	    // ===========================
+	    // FORCE REGEN
+	    // ===========================
+	    if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
+      		this.force = Math.min(this.maxForce, this.force + 1);
+    	}
+
+	    // ===========================
+	    // STATE & ANIMATION
+	    // ===========================
+	    if (!this.isShooting) {
+		    if (!this.grounded) this.setState("jump");
+		    else if (this.moving.left || this.moving.right) this.setState("run");
+		    else this.setState("idle");
+		}
+
+   		// --- animation update ---
 		let anim = this.anims[this.state];
 		// safety fallback if state is missing
 		if (!anim) anim = this.anims.idle;
@@ -195,58 +205,57 @@ class Player {
 		  	this.frameTimer = 0;
 		  	this.frameIndex = (this.frameIndex + 1) % anim.frames.length;
 		}
-  }
+  	}
 
-  draw() {
-    // Draw player hitbox (debug)
-    // ctx.fillStyle = "lime";
-    // ctx.fillRect(this.x, this.y, this.width, this.height);
+  	draw() {
+		// Draw player hitbox (debug)
+		// ctx.fillStyle = "lime";
+		// ctx.fillRect(this.x, this.y, this.width, this.height);
 
-    // Draw Luke
-    if (!lukeImg.complete) return;
+		// Draw Luke
+		if (!lukeImg.complete) return;
 
-    let anim = this.anims[this.state];
-	if (!anim) anim = this.anims.idle;
+		let anim = this.anims[this.state];
+		if (!anim) anim = this.anims.idle;
 
-	const index = anim.frames[this.frameIndex];
-
-
-	// your sheet has 10 columns
-	const COLS = 10;
-
-	// convert frame index → sheet coordinates
-	const sx = (index % COLS) * this.frameW;
-	const sy = Math.floor(index / COLS) * this.frameH;
+		const index = anim.frames[this.frameIndex];
 
 
-    ctx.save();
+		// your sheet has 10 columns
+		const COLS = 10;
 
-    if (this.facing === -1) {
-      	ctx.translate(this.x + this.width, this.y);
-      	ctx.scale(-1, 1);
-      	ctx.drawImage(
-        	lukeImg,
-        	sx, sy, this.frameW, this.frameH,
-        	0, 0,
-        	this.width, this.height
-      	);
-    } else {
-      	ctx.drawImage(
-        	lukeImg,
-        	sx, sy, this.frameW, this.frameH,
-        	this.x, this.y,
-        	this.width, this.height
-      	);
-    }
+		// convert frame index → sheet coordinates
+		const sx = (index % COLS) * this.frameW;
+		const sy = Math.floor(index / COLS) * this.frameH;
 
-    ctx.restore();
+    	ctx.save();
 
-    // HUD
-    ctx.font = "18px monospace";
-    ctx.fillStyle = "white";
-    ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
-    ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
-  }
+	    if (this.facing === -1) {
+	      	ctx.translate(this.x + this.width, this.y);
+	      	ctx.scale(-1, 1);
+	      	ctx.drawImage(
+	        	lukeImg,
+	        	sx, sy, this.frameW, this.frameH,
+	        	0, 0,
+	        	this.width, this.height
+	      	);
+	    } else {
+	      	ctx.drawImage(
+	        	lukeImg,
+	        	sx, sy, this.frameW, this.frameH,
+	        	this.x, this.y,
+	        	this.width, this.height
+	      	);
+	    }
+
+	    ctx.restore();
+
+	    // HUD
+	    ctx.font = "18px monospace";
+	    ctx.fillStyle = "white";
+	    ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
+	    ctx.fillText(`Force: ${this.force}/${this.maxForce}`, 10, 42);
+  	}
 }
 
 const player = new Player(100, 100, 96, 96);
@@ -365,13 +374,51 @@ canvas.addEventListener("mousedown", (event) => {
 	if (now - lastShotTime < fireRate || saber) return;
 	lastShotTime = now;
 
+	// ---------------------------------
+	// 1) Compute aim angle from Luke to mouse
+	// ---------------------------------
+	const originX = player.x + player.width  / 2;
+	const originY = player.y + player.height * 0.4; // roughly gun height
+
+	const dx = event.offsetX - originX;
+	const dy = event.offsetY - originY;
+	const angle = Math.atan2(dy, dx); // 0 = right, negative = up, positive = down
+
+	// ---------------------------------
+	// 2) Choose shooting animation based on angle + movement
+	// ---------------------------------
+	const moving = player.moving.left || player.moving.right;
+
+	// tweak these thresholds if you want:
+	const UP_THRESHOLD   = -0.6; // aim clearly upward  (~ -34°)
+	const DOWN_THRESHOLD =  0.4; // aim clearly downward (~ +23°)
+
+	let animName;
+	if (angle < UP_THRESHOLD) {
+		animName = "shoot_up";
+	} else if (angle > DOWN_THRESHOLD) {
+		animName = "shoot_down";
+	} else if (moving) {
+		animName = "shoot_run";
+	} else {
+		animName = "shoot_straight";
+	}
+
+	player.setState(animName);
+	player.isShooting = true;
+	player.shootTimer = 0.2; // show shoot anim for ~0.2 seconds
+
+	// ---------------------------------
+	// 3) Spawn the bullet exactly as before (toward the mouse)
+	// ---------------------------------
 	bullets.push(new Bullet(
-		player.x + player.width / 2,
-		player.y + player.height / 2,
+		originX,
+		originY,
 		event.offsetX,
 		event.offsetY
 	));
 });
+
 
 const mouse = { x: 0, y: 0 };
 canvas.addEventListener("mousemove", (event) => {
