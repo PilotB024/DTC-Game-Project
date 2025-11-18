@@ -139,7 +139,7 @@ class Player {
   	update(delta) {
   	    // --- shooting timer ---
 	    if (this.isShooting) {
-	      	this.shootTimer -= dt;
+	      	this.shootTimer -= delta;
 	      	if (this.shootTimer <= 0) {
 	        	this.isShooting = false; // allow movement states again
 	      	}
