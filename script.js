@@ -553,7 +553,7 @@ class Enemy {
 		this.markedForDeletion = false;
 		this.shotCooldown = 1500;  // New
 		this.lastShot = 0;  //New
-
+		this.health = 50;
 	}
 
 	update(delta) {
@@ -622,8 +622,6 @@ function updateGame(delta) {
 		enemies[i].update(delta);
 		if (enemies[i].markedForDeletion) enemies.splice(i, 1);
 
-
-
 		// ------------------------
 		//Player bullets hitting enemies in progress
 		// ------------------------
@@ -643,7 +641,7 @@ function updateGame(delta) {
 				if (enemies[i].x < player.x) player.x += 20;
 				else player.x -= 20;
 				if (player.force < 0) player.force = 0;
-			}
+			} 
 		}
 	}
 
@@ -651,7 +649,7 @@ function updateGame(delta) {
 	for (let i = enemyBullets.length - 1; i >= 0; i--) { // NEW
 		enemyBullets[i].update(delta);
 
-		if(enemyBullets [i].distanceTraveled >= enemyBullets[i].range){
+		if(enemyBullets[i].distanceTraveled >= enemyBullets[i].range){
 			enemyBullets.splice(i,1);
 			continue;
 		}
@@ -672,7 +670,6 @@ function updateGame(delta) {
 				if (player.force < 0) player.force = 0;
 				enemyBullets.splice(i, 1);
 			}
-			
 		}
 	}
 
@@ -689,7 +686,25 @@ function updateGame(delta) {
 	// Bullets update & remove
 	for (let i = bullets.length - 1; i >= 0; i--) {
 		bullets[i].update(delta);
-		if (bullets[i].distanceTraveled >= bullets[i].range) bullets.splice(i, 1);
+
+		if (bullets[i].distanceTraveled >= bullets[i].range) {
+			bullets.splice(i, 1);
+			continue;
+		}
+
+		for (let j = enemies.length - 1; j >= 0; j--) {
+			if (boxCollision(enemies[j], {
+				x: bullets[i].x,
+				y: bullets[i].y,
+				width: 20,
+				height: 5
+			}))
+			{
+				enemies[j].health -= 25;
+				bullets.splice(i, 1);
+				if (enemies[j].health <= 0) enemies.splice(j, 1);
+			}
+		}
 	}
 }
 
