@@ -28,12 +28,133 @@ class Player {
 		this.jumpCount = 2;
 
 		this.moving = { left: false, right: false };
+<<<<<<< Updated upstream
 		this.direction = true;
+=======
+		this.facing = 1;
+		this.saberOn = false;        // is the saber currently ignited?
+		this.saberIgniting = false;  // are we in the ignite animation?
+		this.isBlocking = false;
+		this.saberTurningOff = false; // are we playing the saber OFF animation?
+
+
+>>>>>>> Stashed changes
 
 		this.health = 100;
 		this.maxHealth = 100;
 		this.force = 100;
 		this.maxForce = 100;
+<<<<<<< Updated upstream
+=======
+		this.score = 0;
+		this.direction = true;
+
+	    // Animation system
+	    this.frameW = 96; 
+	    this.frameH = 96;
+	    this.scale = 2;
+
+		this.anims = {
+		  	idle: {
+				sheet: "neutral",
+				frames: [0],
+				fps: 4
+			},
+
+			run: {
+				sheet: "neutral",
+				frames: [11,10,9,8,7,6,5,4],
+				fps: 16
+			},
+
+			jump: {
+				sheet: "neutral",
+				frames: [43,42,41,40,39,38,37,36,35],
+				fps: 10
+			},
+
+			shoot_straight: {
+				sheet: "neutral",
+				frames: [12,13],
+				fps: 12
+			},
+
+			shoot_run: {
+				sheet: "neutral",
+				frames: [11,10,9,8],
+				fps: 16
+			},
+
+			shoot_up: {
+				sheet: "neutral",
+				frames: [14,15],
+				fps: 12
+			},
+
+			shoot_down: {
+				sheet: "neutral",
+				frames: [16,17],
+				fps: 12
+			},
+			saber_ignite: {
+			  sheet: "neutral",
+			  frames: [62,61,60], // your ignite frames
+			  fps: 12
+			},
+			saber_off: {
+			  sheet: "neutral",
+			  // use the reverse of your ignite frames (adjust to your real indices)
+			  frames: [60,61,62],   // OFF animation, opposite of [62,61,60]
+			  fps: 12
+			},
+			saber_idle: {
+			  sheet: "neutral",
+			  frames: [60], // usually 1–2 frames of Luke holding saber out
+			  fps: 4
+			},
+			// lightsaber swing (you can tweak these frame indices later)
+      saber_attack: {
+        sheet: "neutral",
+        frames: [76,74,73,72,71,70], // TODO: adjust to your favorite saber frames
+        fps: 20
+
+      },
+      saber_block: {
+			  sheet: "neutral",
+			  // TODO: change these to the exact block frames you like
+			  frames: [104,105],   // two frames of Luke holding saber up to block
+			  fps: 8
+			},
+
+      saber_run: {
+		    sheet: "neutral",
+		    frames: [63,64,65,66,67,68,69,70],
+		    fps: 18
+		  },
+
+		  saber_jump: {
+		    sheet: "neutral",
+		    frames: [83,84,85,86,87,90,91,92],
+		    fps: 16
+		  }
+		};
+
+		// animation playback state
+		this.state = "idle";
+		this.frame = 0;
+		this.timer = 0;
+
+		// your frame size (keep using your current values)
+		this.frameW = 96;
+		this.frameH = 96;
+
+		// your scaling stays as-is
+		this.scale = 2;
+
+	    this.state = "idle";
+	    this.frameIndex = 0;
+	    this.frameTimer = 0;
+>>>>>>> Stashed changes
 	}
 
 	update(delta) {
@@ -45,6 +166,7 @@ class Player {
 		this.velocityY += this.gravity * delta;
 		this.y += this.velocityY * delta;
 
+<<<<<<< Updated upstream
 		// Ground collision
 		if (this.y + this.height >= canvas.height) {
 			this.y = canvas.height - this.height;
@@ -63,6 +185,125 @@ class Player {
 			this.force = Math.min(this.maxForce, this.force + 1);
 		}
 	}
+=======
+	    // ===========================
+	    // HORIZONTAL MOVEMENT
+	    // ===========================
+	    if (this.moving.left && !this.moving.right) {
+	      	this.x -= this.speed * delta;
+	      	this.facing = -1;
+	    }
+	    if (this.moving.right && !this.moving.left) {
+	      	this.x += this.speed * delta;
+	      	this.facing = 1;
+	    }
+
+	    // ===========================
+	    // GRAVITY
+	    // ===========================
+	    this.velocityY += this.gravity * delta;
+	    this.y += this.velocityY * delta;
+
+
+	    // ===========================
+	    // GROUND COLLISION
+	    // ===========================
+	    if (this.y + this.height >= canvas.height) {
+	      	this.y = canvas.height - this.height;
+	      	this.velocityY = 0;
+	      	this.grounded = true;
+	      	this.jumpCount = 2;
+	    } else {
+	      	this.grounded = false;
+	    }
+
+	    // Clamp horizontal bounds
+	    this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
+
+	    // ===========================
+	    // FORCE REGEN
+	    // ===========================
+	    if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
+      		this.force = Math.min(this.maxForce, this.force + 1);
+    	}
+
+    	// ===========================
+	    // PLAYER SCORE
+	    // ===========================
+	    if (frame % 60 === 0) this.score++;
+
+	   // ===========================
+			// STATE & ANIMATION SELECTION
+			// ===========================
+			const saberSwinging = (saber && saber.active);
+
+			// 1) Saber swing has highest priority
+			if (saberSwinging) {
+			  this.setState("saber_attack");
+			}
+			// 2) Igniting saber (E key) – play ignite once
+			else if (this.saberIgniting) {
+			  this.setState("saber_ignite");
+			  const igniteAnim = this.anims.saber_ignite;
+
+			  // when ignite animation finishes, switch to saber_idle
+			  if (this.frameIndex === igniteAnim.frames.length - 1 && this.frameTimer === 0) {
+			    this.saberIgniting = false;
+			    this.saberOn = true;
+			    this.setState("saber_idle");
+			  }
+			}
+			// 3) Turning saber OFF – play saber_off once
+			else if (this.saberTurningOff) {
+			  this.setState("saber_off");
+			  const offAnim = this.anims.saber_off;
+
+			  // when OFF animation finishes, go back to normal idle/run/jump
+			  if (this.frameIndex === offAnim.frames.length - 1 && this.frameTimer === 0) {
+			    this.saberTurningOff = false;
+			    this.saberOn = false;
+			    // we don’t set a final state here; the code below
+			    // will pick idle/run/jump next frame
+			  }
+			}
+			// 4) Saber is ON, but not swinging/igniting/turning off
+			else if (this.saberOn) {
+			  if (this.isBlocking) {
+			    this.setState("saber_block");
+			  } else if (!this.grounded) {
+			    this.setState("saber_jump");
+			  } else if (this.moving.left || this.moving.right) {
+			    this.setState("saber_run");
+			  } else {
+			    this.setState("saber_idle");
+			  }
+			}
+			// 5) Blaster shooting (state already chosen in mousedown)
+			else if (this.isShooting) {
+			  // keep whatever shoot_* state mouse set
+			}
+			// 6) Normal movement (no saber, not shooting)
+			else {
+			  if (!this.grounded) this.setState("jump");
+			  else if (this.moving.left || this.moving.right) this.setState("run");
+			  else this.setState("idle");
+			}
+
+
+			// ===========================
+			// ANIMATION FRAME ADVANCE
+			// ===========================
+			let anim = this.anims[this.state] || this.anims.idle;
+
+			this.frameTimer += delta * 1000; // ms
+			if (this.frameTimer >= 1000 / anim.fps) {
+			  this.frameTimer = 0;
+			  this.frameIndex = (this.frameIndex + 1) % anim.frames.length;
+			}
+
+
+  	}
+>>>>>>> Stashed changes
 
 	draw() {
 		// Player
@@ -77,7 +318,11 @@ class Player {
 	}
 }
 
+<<<<<<< Updated upstream
 const player = new Player(100, 100, 50, 50);
+=======
+const player = new Player(100, 100, 180, 180);
+>>>>>>> Stashed changes
 
 // ------------------------
 // INPUT
@@ -117,33 +362,79 @@ window.addEventListener("keydown", (e) => {
 			}
 			break;
 		case " ":
-			const now = Date.now();
-			if (now - lastSwing < attackSpeed) return;
-			lastSwing = now;
-			saber = new Lightsaber(player, player.direction);
-			break;
+		  const now = Date.now();
+		  if (!player.saberOn) return;          // require ignite first
+		  if (now - lastSwing < attackSpeed) return;
+		  lastSwing = now;
+		  saber = new Lightsaber(player, player.direction);
+		  break;
 		case "q":
 			if (!shield && player.force >= 50) shield = new ForceShield(player);
 			break;
+		case "f":
+	  // start blocking only if saber is already on and not in the middle of ignite
+	  if (player.saberOn && !player.saberIgniting) {
+	    player.isBlocking = true;
+	  }
+	  break;
+	  // case "e":
+		// case "E": {
+		//   // If saber is completely off and not animating, IGNITE
+		//   if (!player.saberOn && !player.saberIgniting && !player.saberTurningOff) {
+		//     player.saberIgniting = true;
+		//     player.saberTurningOff = false;
+		//     player.setState("saber_ignite");
+		//     player.frameIndex = 0;
+		//     player.frameTimer = 0;
+		//   }
+		//   // If saber is on and not already turning off, play OFF animation
+		//   else if (player.saberOn && !player.saberIgniting && !player.saberTurningOff) {
+		//     player.saberTurningOff = true;
+		//     player.setState("saber_off");
+		//     player.frameIndex = 0;
+		//     player.frameTimer = 0;
+		//   }
+		//   break;
+		// }
 	}
 });
 
 window.addEventListener("keyup", (e) => {
-	switch (e.key.toLowerCase()) {
-		case "a": 
-		case "arrowleft":
-			player.moving.left = false; 
-			break;
-		case "d": 
-		case "arrowright":
-			player.moving.right = false; 
-			break;
-		case "q":
-			if (shield) shield.active = false;
-			shield = null;
-			break;
-	}
+  switch (e.key.toLowerCase()) {
+    case "a":
+    case "arrowleft":
+      player.moving.left = false;
+      break;
+
+    case "d":
+    case "arrowright":
+      player.moving.right = false;
+      break;
+
+    case "q":
+      if (shield) shield.active = false;
+      shield = null;
+      break;
+
+    case "e":
+      if (!player.saberOn && !player.saberIgniting) {
+        // turning ON → play ignite
+        player.saberIgniting = true;
+        player.setState("saber_ignite");
+        player.frameIndex = 0;
+      } else if (player.saberOn && !player.saberIgniting) {
+        // turning OFF → just go back to normal idle/run/jump
+        player.saberOn = false;
+      }
+      break;
+
+    case "f":
+      // stop blocking when F is released
+      player.isBlocking = false;
+      break;
+  }
 });
+
 
 // ------------------------
 // BULLETS
@@ -160,6 +451,11 @@ class Bullet {
 		this.y = y;
 		this.speed = 1200; 
 		this.range = 500; 
+<<<<<<< Updated upstream
+=======
+		this.speed = speed; 
+		this.range = range; 
+>>>>>>> Stashed changes
 		this.distanceTraveled = 0;
 
 		const diffX = targetX - x;
@@ -226,23 +522,27 @@ function drawCrosshair(ctx, x, y) {
 class Lightsaber {
 	constructor(player, direction) {
 		this.player = player;
-		this.length = 60;
+
+		this.length = 70;
 		this.width = 10;
-		this.swingSpeed = 6; 
+		this.swingSpeed = 7; 
 		this.direction = direction;
 		this.active = true;
 		
 		if (direction) {
-			this.angle = -Math.PI / 4;
-			this.endAngle = Math.PI / 4;
+			this.angle = -Math.PI / 3;
+			this.endAngle = Math.PI / 3;
 		} else {
-			this.angle = Math.PI + Math.PI / 4;
-			this.endAngle = Math.PI - Math.PI / 4;
+			this.angle = Math.PI + Math.PI / 3;
+			this.endAngle = Math.PI - Math.PI / 3;
 		}
 	}
 
 	update(delta) {
+		if (!this.active) return;
+
 		const step = this.swingSpeed * delta;
+
 		if (this.direction) {
 			this.angle += step;
 			if (this.angle >= this.endAngle) this.active = false;
@@ -250,19 +550,58 @@ class Lightsaber {
 			this.angle -= step;
 			if (this.angle <= this.endAngle) this.active = false;
 		}
+		// Follow Luke's hand (no hitbox changes)
+		this.pivotX = this.player.x + this.player.width * (this.player.direction ? 0.85 : 0.15);
+		this.pivotY = this.player.y + this.player.height * 0.45;
+		
+		//-----------------------------------
+		// 1) SABER HITS ENEMIES
+		//-----------------------------------
+		for (let i = enemies.length - 1; i >= 0; i--) {
+			const e = enemies[i];
+
+			if (this.checkHit(e)) {
+				enemies.splice(i, 1); // kill enemy
+			}
+		}
+
+		//-----------------------------------
+		// 2) SABER DEFLECTS ENEMY BULLETS
+		//-----------------------------------
+		for (let i = enemyBullets.length - 1; i >= 0; i--) {
+			const b = enemyBullets[i];
+
+			if (this.checkHit(b)) {
+				// reflect bullet back at enemy
+				b.dx *= -1;
+				b.dy *= -1;
+			}
+		}
 	}
+
+		// Saber hit detection (rectangle sweep)
+	checkHit(obj) {
+		const saberX2 = this.pivotX + Math.cos(this.angle) * this.length;
+		const saberY2 = this.pivotY + Math.sin(this.angle) * this.length;
+
+		// simple distance test (fast and safe)
+		const dist = Math.hypot(
+			obj.x + obj.width / 2 - saberX2,
+			obj.y + obj.height / 2 - saberY2
+		);
+
+		return dist < 40; // adjust swing hit size here
+	}
+
 
 	draw(ctx) {
 		if (!this.active) return;
+		
 		ctx.save();
-
-		const pivotX = this.player.x + (this.direction ? this.player.width : 0);
-		const pivotY = this.player.y + this.player.height / 2;
-
 		ctx.translate(pivotX, pivotY);
 		ctx.rotate(this.angle);
-		ctx.fillStyle = "red";
-
+		
+		ctx.fillStyle = "cyan";
 		ctx.fillRect(0, -this.width / 2, this.length, this.width);
 		ctx.restore();
 	}
