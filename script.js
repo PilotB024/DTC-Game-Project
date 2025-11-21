@@ -753,3 +753,26 @@ function gameLoop(timestamp) {
 }
 
 requestAnimationFrame(gameLoop);
+
+//start to audio area in code
+startButton.addEventListener("click", function () {
+
+    // hide popup
+    document.getElementById("startPopup").style.display = "none";
+
+    // Music
+    let bgm = document.getElementById("bgm");
+    if (bgm) {
+        bgm.loop = true;
+        bgm.play();
+    }
+
+    // Start the game
+    requestAnimationFrame(gameLoop);
+});
+
+
+
+
+
+

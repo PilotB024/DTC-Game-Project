@@ -1,11 +1,12 @@
 canvas {
-  border: #FFFF00 solid 5px;
+   border: #FFFF00 solid 5px;
   border-radius: 5px;
   margin: auto;
   display: block;
   width: 70%;
-  background-color: white;
+  background-color: black;
 }
+
 
 body {
   background-image: url("img/space.png");
@@ -22,6 +23,9 @@ body {
   text-align: center;
   background-color: dimgray;
   border: solid 4px #FF1440;  /* red glow border effect */
+  padding: 10px 0;
+  line-height: 1.2;
+
 }
 
 /* Header link colors */
@@ -82,6 +86,18 @@ h1 {
   font-size: 2em;
 }
 
+/*header designs*/
+.header h1 {
+  font-size: 28px;   /* smaller title */
+  margin: 5px 0;     /* removes extra space above/below */
+}
+
+.header nav {
+  margin: 5px 0;   /* reduces space above and below the nav */
+  padding: 0;      /* removes extra built-in spacing */
+}
+
+
 #leaderboard {
   border: solid 4px #FFD24A; /* yellow gold color */
   background-color: #FFFDD0; /* Cream Yellow Color */
@@ -90,6 +106,30 @@ h1 {
 #manual {
   border: solid 4px #7CFC00; /* grass green color (to represent the green lightsaber) */
   background-color: #FFFDD0; /* Cream Yellow Color */
+}
+
+/* ===========================
+   Start Popup Styles
+   =========================== */
+
+#startPopup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6); 
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 999;
+}
+
+.popupBox {
+  background: white;
+  padding: 20px 30px;
+  border-radius: 10px;
+  text-align: center;
 }
 
 
