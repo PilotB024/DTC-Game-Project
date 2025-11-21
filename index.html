@@ -5,7 +5,6 @@
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<title>Game</title>
 	<link rel="stylesheet" type="text/css" href="style.css">
-	
 </head>
 <body>
 	<div class="header">
@@ -23,7 +22,13 @@
 
 	<div id="wrapper">
 		<canvas width="900" height="500" id="display"></canvas>
-	</div>
+	</div> <!-- this ends the wrapper -->
+
+	<div id="startPopup"> <div class="popupBox"> <p>Hello! Click here to start playing Star Adventures!</p> <button id="startButton">Start Now</button> </div> </div>
+
+	<audio id="bgm"> <!--this plays the background music--> 
+   <source src="audio/background_music.wav"> 
+</audio>
 
 
 	<script> window.SPRITES = { luke: "./img/luke1.png" }; </script>
