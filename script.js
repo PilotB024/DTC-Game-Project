@@ -347,6 +347,7 @@ class Bullet {
 		this.speed = speed; 
 		this.range = range; 
 		this.distanceTraveled = 0;
+		this.markedForDeletion = false;
 
 		const diffX = targetX - x;
 		const diffY = targetY - y;
@@ -420,7 +421,7 @@ canvas.addEventListener("mousedown", (event) => {
 		event.offsetX,
 		event.offsetY,
 		1200,
-		500
+		600
 	));
 });
 
@@ -586,6 +587,7 @@ class Enemy {
 // COLLISION
 // ------------------------
 function boxCollision(a, b) {
+	if (!a || !b) return false;
 	return (
 		a.x < b.x + b.width &&
 		a.x + a.width > b.x &&
@@ -619,9 +621,8 @@ function updateGame(delta) {
 
 	// Enemies update & remove
 	for (let i = enemies.length - 1; i >= 0; i--) {
+		if (!enemies[i]) continue;
 		enemies[i].update(delta);
-		if (enemies[i].markedForDeletion) enemies.splice(i, 1);
-
 		// ------------------------
 		//Player bullets hitting enemies in progress
 		// ------------------------
@@ -650,7 +651,7 @@ function updateGame(delta) {
 		enemyBullets[i].update(delta);
 
 		if(enemyBullets[i].distanceTraveled >= enemyBullets[i].range){
-			enemyBullets.splice(i,1);
+			enemyBullets.splice(i, 1);
 			continue;
 		}
 
@@ -688,11 +689,11 @@ function updateGame(delta) {
 		bullets[i].update(delta);
 
 		if (bullets[i].distanceTraveled >= bullets[i].range) {
-			bullets.splice(i, 1);
+			bullets[i].markedForDeletion = true;
 			continue;
 		}
 
-		for (let j = enemies.length - 1; j >= 0; j--) {
+		for (let j = 0; j <= enemies.length - 1; j++) {
 			if (boxCollision(enemies[j], {
 				x: bullets[i].x,
 				y: bullets[i].y,
@@ -701,10 +702,23 @@ function updateGame(delta) {
 			}))
 			{
 				enemies[j].health -= 25;
-				bullets.splice(i, 1);
-				if (enemies[j].health <= 0) enemies.splice(j, 1);
+				bullets[i].markedForDeletion = true;
+				if (enemies[j].health <= 0) enemies[j].markedForDeletion = true;
+				continue;
 			}
 		}
+	}
+
+	for (let i = enemies.length - 1; i >= 0; i--) {
+		if (enemies[i].markedForDeletion === true) {
+			enemies.splice(i, 1);
+		}
+	}
+
+	for (let i = bullets.length - 1; i >= 0; i--) {
+    	if (bullets[i].markedForDeletion) {
+        	bullets.splice(i, 1);
+    	}
 	}
 }
 
