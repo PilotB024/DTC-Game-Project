@@ -261,7 +261,7 @@ class Player {
   	}
 }
 
-const player = new Player(100, 100, 96, 96);
+let player = new Player(100, 100, 96, 96);
 
 // ------------------------
 // INPUT
@@ -334,7 +334,7 @@ window.addEventListener("keyup", (e) => {
 // ------------------------
 // BULLETS
 // ------------------------
-const bullets = [];
+let bullets = [];
 let lastShotTime = 0;
 const fireRate = 200;
 
@@ -537,7 +537,7 @@ class ForceShield {
 // ------------------------
 // ENEMIES
 // ------------------------
-const enemies = [];
+let enemies = [];
 let enemyTimer = 0;
 let enemyInterval = 3000;
 
@@ -712,6 +712,7 @@ function updateGame(delta) {
 	for (let i = enemies.length - 1; i >= 0; i--) {
 		if (enemies[i].markedForDeletion === true) {
 			enemies.splice(i, 1);
+			player.score += 20;
 		}
 	}
 
@@ -749,10 +750,28 @@ function gameLoop(timestamp) {
 	}
 
 	drawGame();
-	requestAnimationFrame(gameLoop);
+
+	if (player.health > 0) {
+		requestAnimationFrame(gameLoop);
+	} else {
+		gameOver();
+	}
 }
 
-requestAnimationFrame(gameLoop);
+function gameOver() {
+	document.getElementById("gameOver").style.display = "flex";
+	document.getElementById("score").innerHTML = `Score: ${player.score}`;
+}
+
+restartButton.addEventListener("click", function () {
+	document.getElementById("gameOver").style.display = "none";
+
+	player = new Player(100, 100, 96, 96);
+	bullets = [];
+	enemies = [];
+
+	requestAnimationFrame(gameLoop);
+});
 
 //start to audio area in code
 startButton.addEventListener("click", function () {
