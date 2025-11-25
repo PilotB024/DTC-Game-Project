@@ -261,7 +261,7 @@ class Player {
   	}
 }
 
-let player = new Player(100, 100, 96, 96);
+let player = new Player(100, 100, 120, 120);
 
 // ------------------------
 // INPUT
@@ -766,7 +766,7 @@ function gameOver() {
 restartButton.addEventListener("click", function () {
 	document.getElementById("gameOver").style.display = "none";
 
-	player = new Player(100, 100, 96, 96);
+	player = new Player(100, 100, 120, 120);
 	bullets = [];
 	enemies = [];
 
