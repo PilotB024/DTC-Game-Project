@@ -18,30 +18,53 @@ body {
   font-size: 20px;
 }
 
+/*Color pallet for website
+1.dim gray
+2.dark gray
+3.blue
+4.yellow
+5.white */
+
 /* Header design */
 .header {
-  text-align: center;
+
   background-color: dimgray;
-  border: solid 4px #FF1440;  /* red glow border effect */
+  border: solid 4px #FFEA00;  /* Light Yellow border effect */
   padding: 10px 0;
   line-height: 1.2;
 
 }
 
+.header-top {
+    text-align: center;    /* centers both title and names */
+    padding: 5px 0;        /* clean vertical spacing */
+}
+
+
+.team-names {
+    font-size: 14px;
+    color: #FFFF00; /*yellow color */
+    margin: 0;
+    padding: 0;
+
+}
+
+
 /* Header link colors */
 .header a:link,
 .header a:visited {
-  color: #FFFF00; /* yellow */
+  color: #00ffdd; /* Light Cyan color */
   text-decoration: none;
 }
 
 .header a:hover,
 .header a:focus {
-  color: #FFBF00; /* amber orange */
+  color: #00ffdd; /* Light Cyan color */
 }
 
 /* Navigation styling */
 nav {
+  text-align: center;
   background-color: #2c2c2c; /* darker background for contrast */
   border-top: 2px solid #444;
   border-bottom: 2px solid #444;
@@ -67,7 +90,7 @@ nav li {
 nav li a {
   display: block;
   text-decoration: none;
-  color: #FFFF66; /* soft yellow text */
+  color: #15F2FD; /* Lightsaber Cyan */
   font-weight: bold;
   letter-spacing: 1px;
   padding: 10px 0;
@@ -76,14 +99,24 @@ nav li a {
 
 /* Hover effects for a glowing look */
 nav li a:hover {
-  color: #FFD700; /* bright gold */
-  text-shadow: 0 0 8px #FFD700;
+  color: #15F2FD; /* Lightsaber Cyan */
+  text-shadow: 0 0 8px #15F2FD;
 }
 
+/*text css designs*/
+
 h1 {
-  color: cyan; 
-  /*this is a Cyan Blue*/
+  color: #FFE81F;  
+  /*this is a star wars intro yellow color*/
   font-size: 2em;
+}
+
+h2 {
+  color: #DFDFDF; /*Vader Panel Light color*/
+}
+
+p {
+  color: #DFDFDF; /*Vader Panel Light color*/
 }
 
 /*header designs*/
@@ -97,16 +130,22 @@ h1 {
   padding: 0;      /* removes extra built-in spacing */
 }
 
-
+/*design aspects for leaderboard and manual */
 #leaderboard {
-  border: solid 4px #FFD24A; /* yellow gold color */
-  background-color: #FFFDD0; /* Cream Yellow Color */
+  border: solid 4px #FFFF00; /* Yellow Color */
+  background-color: #242424; /* Vader Armor Gray*/
 }
+
 
 #manual {
-  border: solid 4px #7CFC00; /* grass green color (to represent the green lightsaber) */
-  background-color: #FFFDD0; /* Cream Yellow Color */
+  border: solid 4px #FFFF00; /* Yellow color  */
+  background-color: #242424; /* Vader Armor Gray */
 }
+
+#wrapper {
+    margin-top: 10px;   /* small spacing only */
+}
+
 
 /* ===========================
    Start Popup Styles
@@ -139,10 +178,30 @@ h1 {
 }
 
 .popupBox {
-  background: white;
+  background: #242424; /* Vader Armor Gray color */
   padding: 20px 30px;
   border-radius: 10px;
   text-align: center;
 }
 
+/* control design asspect*/ 
+
+.controls-list {
+    list-style: none;         
+    padding: 0;
+    margin: 20px auto;
+    width: 70%;               
+    text-align: left;         
+}
+
+.controls-list li {
+    background: #2a2a2a;      /* dark gray like the theme */
+    padding: 12px 15px;
+    margin: 10px 0;
+    border-left: 4px solid #FFE81F; /* Star Wars yellow accent */
+    border-radius: 4px;
+    color: #DFDFDF;           /* light gray text */
+    font-size: 18px;
+    line-height: 1.4;
+}
 
