@@ -7,7 +7,6 @@ canvas {
   background-color: black;
 }
 
-
 body {
   background-image: url("img/space.png");
   background-repeat: no-repeat;
@@ -27,48 +26,42 @@ body {
 
 /* Header design */
 .header {
-
   background-color: dimgray;
   border: solid 4px #FFEA00;  /* Light Yellow border effect */
-  padding: 10px 0;
-  line-height: 1.2;
-
+  padding: 5px 0;            /* reduced header height */
 }
 
 .header-top {
-    text-align: center;    /* centers both title and names */
-    padding: 5px 0;        /* clean vertical spacing */
-}
-
-
-.team-names {
-    font-size: 14px;
-    color: #FFFF00; /*yellow color */
+    text-align: center;      /* centers both title and names */
     margin: 0;
     padding: 0;
-
 }
 
+.team-names {
+    font-size: 12px;         /* smaller text */
+    color: #FFFF00;
+    margin: 0;
+    padding: 0;
+}
 
 /* Header link colors */
 .header a:link,
 .header a:visited {
-  color: #00ffdd; /* Light Cyan color */
+  color: #00ffdd;
   text-decoration: none;
 }
 
 .header a:hover,
 .header a:focus {
-  color: #00ffdd; /* Light Cyan color */
+  color: #00ffdd;
 }
 
 /* Navigation styling */
 nav {
   text-align: center;
-  background-color: #2c2c2c; /* darker background for contrast */
+  background-color: #2c2c2c;
   border-top: 2px solid #444;
   border-bottom: 2px solid #444;
-  padding: 10px 0;
 }
 
 nav ul {
@@ -79,7 +72,7 @@ nav ul {
   padding: 0;
   margin: 0;
   width: 80%;
-  margin-inline: auto; /* centers the list */
+  margin-inline: auto;
 }
 
 nav li {
@@ -90,62 +83,60 @@ nav li {
 nav li a {
   display: block;
   text-decoration: none;
-  color: #15F2FD; /* Lightsaber Cyan */
+  color: #15F2FD;
   font-weight: bold;
-  letter-spacing: 1px;
-  padding: 10px 0;
+  letter-spacing: 0.5px;  /* slightly reduced spacing */
+  padding: 6px 0;         /* reduced vertical padding */
   transition: color 0.3s ease, text-shadow 0.3s ease;
+  font-size: 12px;        /* slightly smaller */
 }
 
 /* Hover effects for a glowing look */
 nav li a:hover {
-  color: #15F2FD; /* Lightsaber Cyan */
+  color: #15F2FD;
   text-shadow: 0 0 8px #15F2FD;
 }
 
 /*text css designs*/
-
 h1 {
-  color: #FFE81F;  
-  /*this is a star wars intro yellow color*/
+  color: #FFE81F;
   font-size: 2em;
 }
 
 h2 {
-  color: #DFDFDF; /*Vader Panel Light color*/
+  color: #DFDFDF;
 }
 
 p {
-  color: #DFDFDF; /*Vader Panel Light color*/
+  color: #DFDFDF;
 }
 
 /*header designs*/
 .header h1 {
-  font-size: 28px;   /* smaller title */
-  margin: 5px 0;     /* removes extra space above/below */
+  font-size: 18px;   /* smaller title */
+  margin: 2px 0;     /* reduced spacing */
+  line-height: 1.1;  /* tighter layout */
 }
 
 .header nav {
-  margin: 5px 0;   /* reduces space above and below the nav */
-  padding: 0;      /* removes extra built-in spacing */
+  margin: 2px 0;   /* reduced spacing for nav */
+  padding: 0;
 }
 
 /*design aspects for leaderboard and manual */
 #leaderboard {
-  border: solid 4px #FFFF00; /* Yellow Color */
-  background-color: #242424; /* Vader Armor Gray*/
+  border: solid 4px #FFFF00;
+  background-color: #242424;
 }
 
-
 #manual {
-  border: solid 4px #FFFF00; /* Yellow color  */
-  background-color: #242424; /* Vader Armor Gray */
+  border: solid 4px #FFFF00;
+  background-color: #242424;
 }
 
 #wrapper {
-    margin-top: 10px;   /* small spacing only */
+    margin-top: 10px;
 }
-
 
 /* ===========================
    Start Popup Styles
@@ -178,14 +169,13 @@ p {
 }
 
 .popupBox {
-  background: #242424; /* Vader Armor Gray color */
+  background: #242424;
   padding: 20px 30px;
   border-radius: 10px;
   text-align: center;
 }
 
-/* control design asspect*/ 
-
+/* control design aspect */ 
 .controls-list {
     list-style: none;         
     padding: 0;
@@ -195,13 +185,12 @@ p {
 }
 
 .controls-list li {
-    background: #2a2a2a;      /* dark gray like the theme */
+    background: #2a2a2a;
     padding: 12px 15px;
     margin: 10px 0;
-    border-left: 4px solid #FFE81F; /* Star Wars yellow accent */
+    border-left: 4px solid #FFE81F;
     border-radius: 4px;
-    color: #DFDFDF;           /* light gray text */
+    color: #DFDFDF;
     font-size: 18px;
     line-height: 1.4;
 }
-

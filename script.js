@@ -6,16 +6,21 @@
 
 // GitHub Repo: https://github.com/PilotB024/DTC-Game-Project
 
+// Assets:
+	// Music: https://freesound.org/people/solarpsychedelic/sounds/748203/
+	// Background: https://picryl.com/media/space-stars-star-wars-backgrounds-textures-106f3e
+
 // ChatGPT:
-	// Paul Braden: 	https://chatgpt.com/share/692e358c-53f4-8004-b50c-066a52906e8f, 
-	//					https://chatgpt.com/share/692e35b3-60a8-8004-bc3b-d6d75763fed1, 
-	//					https://chatgpt.com/share/692e35e9-d060-8004-8673-fb0ccedbfe10
-	// I used ChatGPT to help troublshoot issues with the game and work out how to add new features.
+	// Paul Braden: 		https://chatgpt.com/share/692e358c-53f4-8004-b50c-066a52906e8f, 
+	//						https://chatgpt.com/share/692e35b3-60a8-8004-bc3b-d6d75763fed1, 
+	//						https://chatgpt.com/share/692e35e9-d060-8004-8673-fb0ccedbfe10
+	// Lindsey Jacobsen: 	https://chatgpt.com/share/6932389d-a098-8000-9c70-1495f2ad4807
+	// We used ChatGPT to help troublshoot issues with the game and work out how to add new features.
 
 // Logic Steps:
 // 1. Listen for start button click.
 // 2. When the start button is clicked, hide the start popup, begin playing the music, and start the game loop.
-// 3. Create the player object, and find its sprite file.
+// 3. Create the player object.
 // 4. Call update game to update the entire game state each frame. Frame rate is locked to 60 FPS.
 // 5. Update player state depending on player input and interaction from enemies.
 // 6. Enemies are spawned on a timer. Spawn an enemy if the timer allows it. Enemies move from left to right and shoot at the player.
