@@ -39,7 +39,7 @@
 // 11. If the player has died display the game over popup and give it the player's final score.
 // 12. If the player presses the restart button the game resets and starts from the beginning.
 
-// Save Canvas Variables
+// Store Canvas Variables
 const canvas = document.getElementById("display");
 const ctx = canvas.getContext("2d");
 
@@ -104,7 +104,7 @@ function checkLedgesReady() {
 const bgImg = new Image();
 bgImg.src = "./img/background.png";
 let bgX = 0;
-let backgroundLocked = false;   // <--- add this here (global flag)
+let backgroundLocked = false;
 
 bgImg.onload = () => console.log("Background loaded");
 
@@ -112,22 +112,22 @@ bgImg.onload = () => console.log("Background loaded");
 const bgScale = 0.6;
 
 function drawBackground(delta) {
-  if (!bgImg.complete || bgImg.naturalWidth === 0) return;
+    if (!bgImg.complete || bgImg.naturalWidth === 0) return;
 
-  const scrollSpeed = 70;
-  if (!backgroundLocked) {
+    const scrollSpeed = 70;
+    if (!backgroundLocked) {
         bgX -= scrollSpeed * delta;
-  }
+    }
 
-  const w = bgImg.width * bgScale;
-  const h = bgImg.height * bgScale;
+    const w = bgImg.width * bgScale;
+    const h = bgImg.height * bgScale;
 
-  if (bgX <= -w) bgX += w;
+    if (bgX <= -w) bgX += w;
 
-  const y = canvas.height - h;
+    const y = canvas.height - h;
 
-  ctx.drawImage(bgImg, bgX,     y, w, h);
-  ctx.drawImage(bgImg, bgX + w, y, w, h);
+    ctx.drawImage(bgImg, bgX,     y, w, h);
+    ctx.drawImage(bgImg, bgX + w, y, w, h);
 }
 
 
@@ -142,6 +142,8 @@ let enemyBullets = [];
 canvas.addEventListener("mouseenter", () => {
     canvas.style.cursor = "none";
 });
+
+// Shows cursor when mouse enters the canvas
 canvas.addEventListener("mouseleave", () => {
     canvas.style.cursor = "default";
 });
@@ -182,11 +184,12 @@ class Player {
         this.saberTurningOff = false;
         this.isBlocking = false;
 
-        // Animation system
+        // Animation System
         this.frameW = 96;
         this.frameH = 96;
         this.scale = 2;
 
+        // Animation Frames
         this.anims = {
             idle: { sheet: "neutral", frames: [0], fps: 4 },
             run:  { sheet: "neutral", frames: [11,10,9,8,7,6,5,4], fps: 16 },
@@ -208,11 +211,13 @@ class Player {
             saber_jump:   { sheet:"neutral", frames:[83,84,85,86,87,90,91,92], fps:16 }
         };
 
+        // Default State
         this.state = "idle";
         this.frameIndex = 0;
         this.frameTimer = 0;
     }
 
+    // Player Hitbox
     getHitBox() {
         return {
             x: this.x + this.width * 0.28,
@@ -222,6 +227,7 @@ class Player {
         };
     }
 
+    // Change Animation State
     setState(next) {
         if (this.state !== next) {
             this.state = next;
@@ -230,20 +236,22 @@ class Player {
         }
     }
 
+    // Update Player
     update(delta) {
-        // shooting timer
+        // Shooting Timer
         if (this.isShooting) {
             this.shootTimer -= delta;
             if (this.shootTimer <= 0) this.isShooting = false;
         }
 
-        // horizontal movement
+        // Move Left
         if (this.moving.left && !this.moving.right) {
             this.x -= this.speed * delta;
             this.facing = -1;
             this.direction = false;
         }
 
+        // Move Right
         if (this.moving.right && !this.moving.left) {
             this.x += this.speed * delta;
             this.facing = 1;
@@ -262,15 +270,15 @@ class Player {
             this.jumpCount = 2;
         }
 
-        // clamp horizontal
+        // Prevent player from going off-screen
         this.x = Math.max(0, Math.min(canvas.width - this.width, this.x));
 
-        // force regen
+        // Force Meter Regeneration
         if (frame % 15 === 0 && this.force < this.maxForce && !shield) {
             this.force = Math.min(this.maxForce, this.force + 1);
         }
 
-        // score
+        // Score
         if (frame % 60 === 0) this.score++;
 
         // Animation States
@@ -315,9 +323,12 @@ class Player {
         }
     }
 
+    // Draw player each frame
     draw() {
+        // Skip if missing player sprite
         if (!lukeImg.complete) return;
 
+        // Adjust Animation State
         const anim = this.anims[this.state] || this.anims.idle;
         const index = anim.frames[this.frameIndex];
 
@@ -336,7 +347,7 @@ class Player {
 
         ctx.restore();
 
-        // HUD
+        // Draw HUD Info
         ctx.font = "18px monospace";
         ctx.fillStyle = "white";
         ctx.fillText(`HP: ${this.health}/${this.maxHealth}`, 10, 22);
@@ -364,10 +375,10 @@ const trooperAnims = {
 // Stormtrooper Bullet Object
 class StormtrooperBullet {
     constructor(x, y, targetX, targetY) {
-        this.x = x;
+        this.x = x; // Starting Position
         this.y = y;
 
-        const dx = targetX - x;
+        const dx = targetX - x; // Trajectory
         const dy = targetY - y;
         const len = Math.hypot(dx, dy) || 1;
 
@@ -375,10 +386,11 @@ class StormtrooperBullet {
         this.dy = dy / len;
 
         this.speed = 450;
-        this.range = 0;
+        this.range = 200;
         this.distanceTraveled = 0;
     }
 
+    // Update Position Each Frame
     update(delta) {
         const step = this.speed * delta;
         this.x += this.dx * step;
@@ -386,6 +398,7 @@ class StormtrooperBullet {
         this.distanceTraveled += step;
     }
 
+    // Draw Bullet Each Frame
     draw(ctx) {
         ctx.save();
 
@@ -408,10 +421,10 @@ class StormtrooperBullet {
 // Stormtrooper Object
 class Stormtrooper {
     constructor(x, y) {
-        this.x = x;
+        this.x = x; // Spawn Location
         this.y = y;
 
-        this.frameW = 96;
+        this.frameW = 96; // Size and Dimensions
         this.frameH = 96;
         this.scale = 1.7;
 
@@ -430,6 +443,7 @@ class Stormtrooper {
         this.remove = false;
     }
 
+    // Stormtrooper Hitbox
     getHitBox() {
         return {
             x: this.x + this.width * 0.30,
@@ -439,6 +453,7 @@ class Stormtrooper {
         };
     }
 
+    // Advance Animation State
     setState(next) {
         if (this.state !== next) {
             this.state = next;
@@ -447,6 +462,7 @@ class Stormtrooper {
         }
     }
 
+    // Method to apply damage to trooper
     takeDamage(amount) {
         this.hp -= amount;
         if (this.hp <= 0) {
@@ -456,6 +472,7 @@ class Stormtrooper {
         }
     }
 
+    // Update trooper each frame
     update(delta, player) {
         // Death animation
         if (this.state === "death") {
@@ -520,6 +537,7 @@ class Stormtrooper {
         this.frame = anim.frames[this.frameIndex];
     }
 
+    // Draw trooper each frame
     draw(ctx) {
         ctx.save();
 
@@ -576,6 +594,7 @@ window.addEventListener("keydown", (e) => {
     if (blocked.includes(e.key)) e.preventDefault();
 });
 
+// Player Controls
 window.addEventListener("keydown", (e) => {
     switch (e.key.toLowerCase()) {
         case "a":
@@ -668,6 +687,7 @@ class Bullet {
         this.dy = diffY / length;
     }
 
+    // Update Bullet Position Each Frame
     update(delta) {
         const distance = this.speed * delta;
         this.x += this.dx * distance;
@@ -675,6 +695,7 @@ class Bullet {
         this.distanceTraveled += distance;
     }
 
+    // Draw Bullet Each Frame
     draw(ctx) {
         ctx.save();
 
@@ -721,6 +742,7 @@ canvas.addEventListener("mousedown", (event) => {
     player.isShooting = true;
     player.shootTimer = 0.2;
 
+    // Fire a new bullet from the player position
     bullets.push(new Bullet(
         originX,
         originY,
@@ -770,6 +792,7 @@ class Lightsaber {
         }
     }
 
+    // Update Lightsaber Each Frame
     update(delta) {
         if (!this.active) return;
 
@@ -785,7 +808,7 @@ class Lightsaber {
         this.pivotX = this.player.x + this.player.width * (this.player.direction ? 0.8 : 0.2);
         this.pivotY = this.player.y + this.player.height * 0.45;
 
-        // Hit enemies
+        // Apply damage when enemies are hit
         for (let i = enemies.length - 1; i >= 0; i--) {
             const e = enemies[i];
             if (this.checkHit(e)) {
@@ -798,7 +821,7 @@ class Lightsaber {
         }
 
 
-        // deflect enemy bullets
+        // Deflect Enemy Bullets Using Block
         for (let i = enemyBullets.length - 1; i >= 0; i--) {
             const b = enemyBullets[i];
             if (this.checkHit({ x:b.x, y:b.y, width:20, height:5 })) {
@@ -818,6 +841,7 @@ class Lightsaber {
         return dist < 40;
     }
 
+    // Draw the Saber Hitbox Each Frame
     draw(ctx) {
         if (!this.active) return;
 
@@ -847,6 +871,7 @@ class ForceShield {
         this.active = true;
     }
 
+    // Apply cost of shield each Frame
     update(delta) {
         if (!this.active) return;
         this.timer += delta * 1000;
@@ -861,6 +886,7 @@ class ForceShield {
         }
     } 
 
+    // Track Shield to Player Each Frame
     draw(ctx) {
         if (!this.active) return;
         ctx.save();
@@ -883,6 +909,7 @@ let enemyInterval = 4500;
 let ledgeTimer = 0;
 const ledgeInterval = 6;
 
+// Global Function to Spawn a Platform
 function spawnFloatingLedge() {
     if (!ledgesReady) return;
 
@@ -900,6 +927,7 @@ function spawnFloatingLedge() {
 }
 
 // Tie Fighter Bullet Object
+// Works the same a stormtrooper bullets
 class TieBullet {
     constructor(x, y, targetX, targetY) {
         this.x = x;
@@ -953,8 +981,7 @@ class Enemy {
         this.width = width;     
         this.height = height;   
 
-        // FIXED: small scale so it matches SNES size
-        this.spriteScale = 0.55;   // <<--- THIS FIXES GIANT TIE FIGHTER
+        this.spriteScale = 0.55;
 
         this.hp = 30;
         this.speed = 140;
@@ -973,6 +1000,7 @@ class Enemy {
         this.remove = false;
     }
 
+    // Get Tie Hitbox
     getHitBox() {
         return {
             x: this.x + this.width * 0.20,
@@ -982,6 +1010,7 @@ class Enemy {
         };
     }
 
+    // Apply damage to a Tiefighter
     takeDamage(amount) {
         if (this.exploding) return;
         this.hp -= amount;
@@ -992,6 +1021,7 @@ class Enemy {
         }
     }
 
+    // Update position and attack state each frame
     update(delta) {
         if (!this.exploding) {
             // Move fast left
@@ -1043,6 +1073,7 @@ class Enemy {
         }
     }
 
+    // Draw Tiefighter
     draw(ctx) {
         if (!tieImg.complete || !TIE_FRAME_W) return;
 
@@ -1070,18 +1101,17 @@ class Enemy {
     }
 }
 
+// Globals for Rancor Boss
 let rancorSpawned = false;
 let boss = null;
 
 // Rancor Boss Object
 class RancorBoss {
     constructor(x, y) {
-
-        // Correct sheet layout (based on your uploaded PNG)
+        // Sprite Sheet Layout
         this.columns = 4;  
         this.rows = 3;
 
-        // FIX: compute frame size using correct columns
         RANCOR_FRAME_W = rancorImg.width / this.columns;
         RANCOR_FRAME_H = rancorImg.height / this.rows;
 
@@ -1090,7 +1120,7 @@ class RancorBoss {
         this.width = RANCOR_FRAME_W * this.scale;
         this.height = RANCOR_FRAME_H * this.scale;
 
-        this.x = x;
+        this.x = x; // Spawn Position
         this.y = canvas.height - this.height;
 
         this.frameX = 0;
@@ -1114,6 +1144,7 @@ class RancorBoss {
         this.falling = false;
     }
 
+    // Boss Hitbox
     getHitBox() {
         return {
             x: this.x + this.width * 0.30,
@@ -1123,6 +1154,7 @@ class RancorBoss {
         };
     }
 
+    // Boss Animation Methods
     setAnimation(name) {
         const anim = this.animations[name];
         if (!anim) return;
@@ -1148,7 +1180,9 @@ class RancorBoss {
         }
     }
 
+    // Update Boss Each Frame
     update(delta) {
+        // Apply gravity and restart game if boss is out of bounds
         if (this.falling) {
             this.y += 500 * delta;
 
@@ -1158,6 +1192,7 @@ class RancorBoss {
                 return;
         }
 
+        // Boss horizontal movement
         const stopX = canvas.width * 0.35;
 
         if (this.x > stopX) {
@@ -1170,6 +1205,7 @@ class RancorBoss {
         this.updateAnimation(delta);
     }
 
+    // Draw Sprite Each Frame
     draw(ctx) {
         if (!rancorImg.complete) return;
 
@@ -1190,6 +1226,7 @@ class RancorBoss {
         );
     }
 
+    // Apply Boss Damage
     takeDamage(amount) {
         this.health -= amount;
 
@@ -1206,7 +1243,7 @@ class RancorBoss {
 // Platform Object
 class FloatingLedge {
     constructor(x, y, img) {
-        this.x = x;
+        this.x = x; // Spawn position
         this.baseY = y;
         this.y = y;
         this.img = img;
@@ -1234,6 +1271,7 @@ class FloatingLedge {
         this.bobFrequency = 2.5;
     }
 
+    // Update platform position
     update(delta) {
         // Move left
         this.x -= this.speed * delta;
@@ -1248,6 +1286,7 @@ class FloatingLedge {
         }
     }
 
+    // Draw Platform sprites depending on type
     draw(ctx) {
         if (this.img.complete && this.img.naturalWidth > 0) {
             ctx.drawImage(this.img, this.x, this.y, this.width, this.height);
@@ -1256,6 +1295,7 @@ class FloatingLedge {
 }
 
 // Collision Function
+// Takes two objects and checks if they overlap
 function boxCollision(a, b) {
     return (
         a.x < b.x + b.width &&
@@ -1265,6 +1305,8 @@ function boxCollision(a, b) {
     );
 }
 
+// Damage cooldown for player
+// Prevents attacks from hitting multiple times
 let damageCooldown = 1000;
 let lastDamageTime = 0;
 
@@ -1275,6 +1317,7 @@ let accumulator = 0;
 
 // Update Game
 function updateGame(delta) {
+    // Increment Frame
     frame++;
 
     // Update Player
@@ -1430,7 +1473,7 @@ function updateGame(delta) {
     // Update Player Bullets
     for (let i = bullets.length - 1; i >= 0; i--) {
         const bullet = bullets[i];
-        bullet.update(delta);  // <-- correct place for distance tracking
+        bullet.update(delta); 
 
         // Remove if off-screen or past range
         if (
@@ -1488,7 +1531,7 @@ function drawGame() {
     ctx.fillStyle = "#8f93b6";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    // Camera Shake
+    // Camera Shake upon Boss entrance
     ctx.save();
     if (boss && boss.shake) {
         ctx.translate(
