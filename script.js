@@ -7,14 +7,21 @@
 // GitHub Repo: https://github.com/PilotB024/DTC-Game-Project
 
 // Assets:
-	// Music: https://freesound.org/people/solarpsychedelic/sounds/748203/
-	// Background: https://picryl.com/media/space-stars-star-wars-backgrounds-textures-106f3e
+	// Music: 		https://freesound.org/people/solarpsychedelic/sounds/748203/
+	// Background: 	https://picryl.com/media/space-stars-star-wars-backgrounds-textures-106f3e
+	// Sprites: 	https://www.spriters-resource.com/snes/superstarwars2theempirestrikesback/asset/31607/,
+	// 				https://www.spriters-resource.com/snes/superstarwars/asset/45665/,
+	// 				https://www.spriters-resource.com/game_boy_advance/starwarstrilogyapprenticeoftheforce/asset/137487/,
+	// 				https://www.spriters-resource.com/snes/superstarwars3returnofthejedi/asset/11123/
 
 // ChatGPT:
 	// Paul Braden: 		https://chatgpt.com/share/692e358c-53f4-8004-b50c-066a52906e8f, 
 	//						https://chatgpt.com/share/692e35b3-60a8-8004-bc3b-d6d75763fed1, 
 	//						https://chatgpt.com/share/692e35e9-d060-8004-8673-fb0ccedbfe10
 	// Lindsey Jacobsen: 	https://chatgpt.com/share/6932389d-a098-8000-9c70-1495f2ad4807
+	// Dakotta Bhatti: 		https://chatgpt.com/share/69331cbe-692c-8003-9f3f-97f9a06b57a2,
+	//						https://chatgpt.com/share/69331f06-b3b4-8003-bbde-5914f126359e
+	// Matthew Strickland: 	 
 	// We used ChatGPT to help troublshoot issues with the game and work out how to add new features.
 
 // Logic Steps:
