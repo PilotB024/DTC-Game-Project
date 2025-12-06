@@ -467,6 +467,7 @@ class Stormtrooper {
         this.hp -= amount;
         if (this.hp <= 0) {
             this.setState("death");
+            player.score += 20;
         } else {
             this.setState("hurt");
         }
@@ -1017,7 +1018,8 @@ class Enemy {
 
         if (this.hp <= 0) {
             this.exploding = true;
-            this.frame = 0;
+            this.hp = 0;
+            player.score += 50;
         }
     }
 
@@ -1235,6 +1237,7 @@ class RancorBoss {
             this.falling = true;
             this.setAnimation("idle");
             this.frameX = 0;
+            player.score += 100;
         }
     }
 }
@@ -1421,7 +1424,6 @@ function updateGame(delta) {
         const now = Date.now();
         if (now - lastDamageTime > damageCooldown) {
             if (!shield) {
-                player.health -= 1;
                 if (player.health < 0) player.health = 0;
             } else {
                 player.force -= 5;
