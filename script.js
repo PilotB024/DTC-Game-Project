@@ -1619,7 +1619,7 @@ function gameOver() {
 restartButton.addEventListener("click", function () {
     document.getElementById("gameOver").style.display = "none"; // Hides Popup
 
-    player = new Player(100, 100, 120, 120); // Creates a new player
+    player = new Player(100, 100, 180, 180); // Creates a new player
     bullets = []; // Clears Bullets
     enemies = []; // Clears Enemies
     floatingLedges = []; // Clear Platforms
